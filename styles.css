@@ -385,6 +385,71 @@ body {
   border-color: var(--accent);
 }
 
+/* ---------- Memória ---------- */
+.memoria-wrap {
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ia-config select,
+.ia-config textarea,
+.memoria-edit {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  margin-bottom: 10px;
+}
+.ia-config textarea,
+.memoria-edit {
+  resize: vertical;
+}
+.ia-config select:focus,
+.ia-config textarea:focus,
+.memoria-edit:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+#memoria-status.erro {
+  color: var(--accent);
+}
+#memoria-status.ok {
+  color: var(--ok);
+}
+.memoria-item {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.memoria-item.muted {
+  opacity: 0.58;
+}
+.memoria-meta {
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+.memoria-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.memoria-actions .btn {
+  padding: 11px 8px;
+  font-size: 13px;
+}
+
 /* ---------- Tabbar ---------- */
 .tabbar {
   position: fixed;

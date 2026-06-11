@@ -1,7 +1,7 @@
 // Mira — service worker simples para funcionar offline (local-first).
 // Estratégia: cache-first para os arquivos do app.
 
-const CACHE = "mira-v3";
+const CACHE = "mira-v4";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,6 +9,7 @@ const ASSETS = [
   "./manifest.webmanifest",
   "./src/app.js",
   "./src/db.js",
+  "./src/memoria.js",
   "./src/prioridade.js",
   "./src/ia/revisora-web.js",
   "./src/ia/prompt_ia_revisora.md",
@@ -56,7 +57,29 @@ self.addEventListener("fetch", (e) => {
 
 function idbOpen() {
   return new Promise((resolve, reject) => {
-    const r = indexedDB.open("mira", 1);
+    const r = indexedDB.open("mira", 2);
+    r.onupgradeneeded = () => {
+      const db = r.result;
+      if (!db.objectStoreNames.contains("tarefas")) {
+        const store = db.createObjectStore("tarefas", { keyPath: "id" });
+        store.createIndex("status", "status", { unique: false });
+        store.createIndex("criadaEm", "criadaEm", { unique: false });
+      }
+      if (!db.objectStoreNames.contains("historico")) {
+        const h = db.createObjectStore("historico", {
+          keyPath: "id",
+          autoIncrement: true,
+        });
+        h.createIndex("em", "em", { unique: false });
+      }
+      if (!db.objectStoreNames.contains("memoria")) {
+        const m = db.createObjectStore("memoria", { keyPath: "id" });
+        m.createIndex("memory_type", "memory_type", { unique: false });
+        m.createIndex("is_active", "is_active", { unique: false });
+        m.createIndex("origem", "origem", { unique: false });
+        m.createIndex("criadaEm", "criadaEm", { unique: false });
+      }
+    };
     r.onsuccess = () => resolve(r.result);
     r.onerror = () => reject(r.error);
   });

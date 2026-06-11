@@ -75,6 +75,36 @@
       </main>
     </section>
 
+    <!-- ===================== MEMÓRIA ===================== -->
+    <section class="view" id="view-memoria">
+      <header class="topbar">
+        <span class="brand"><span class="brand-dot"></span> Memória</span>
+        <span class="subtitle">aprendizados locais e editáveis</span>
+      </header>
+      <main class="memoria-wrap">
+        <button class="btn btn-primary" id="btn-compactar-memoria">
+          Compactar histórico
+        </button>
+        <p class="hint" id="memoria-status">
+          A memória usa só o histórico deste aparelho.
+        </p>
+
+        <details class="ia-config">
+          <summary>Adicionar memória manual</summary>
+          <select id="memoria-type"></select>
+          <select id="memoria-confidence"></select>
+          <textarea
+            id="memoria-content"
+            rows="3"
+            placeholder="Ex: tarefas de orçamento precisam aparecer antes das criativas"
+          ></textarea>
+          <button class="btn btn-primary" id="btn-salvar-memoria">Salvar memória</button>
+        </details>
+
+        <div class="list-wrap" id="memoria-list"></div>
+      </main>
+    </section>
+
     <!-- ===================== NAV INFERIOR ===================== -->
     <nav class="tabbar">
       <button class="tab" data-go="agora" data-active>
@@ -85,6 +115,9 @@
       </button>
       <button class="tab" data-go="caixa">
         <span class="tab-ico">＋</span><span>Caixa</span>
+      </button>
+      <button class="tab" data-go="memoria">
+        <span class="tab-ico">◌</span><span>Memória</span>
       </button>
     </nav>
 

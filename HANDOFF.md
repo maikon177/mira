@@ -202,7 +202,9 @@ celular continua servindo a versão velha do cache.
 
 Os eventos do `historico` já são gravados — você tem a matéria-prima pronta.
 
-### Passo 7 — Memória compactada  (ver `docs/memoria_compactada.md`)
+### Passo 7 — Memória compactada  (ver `docs/memoria_compactada.md`) ✅
+
+**Implementado localmente e testado no celular em 11/06/2026.**
 
 Transformar o histórico em **aprendizados curtos, úteis e editáveis**. NÃO treinar
 IA; é heurística + (opcionalmente) a IA resumindo padrões.
@@ -348,12 +350,12 @@ do cache no `sw.js`** se mudou arquivos, e force reload no aparelho (o SW tem
 - [x] Passo 4 — Fluxo principal (Caixa, Agora, Hoje, ações de decisão)
 - [x] Passo 5 — IA revisora
 - [x] Passo 6 — Notificações decisivas
-- [ ] **Passo 7 — Memória compactada**  ← próximo
-- [ ] **Passo 8 — Laboratório de abordagens**
+- [x] Passo 7 — Memória compactada
+- [ ] **Passo 8 — Laboratório de abordagens**  ← próximo
 - [ ] Backlog: push agendado, sync Supabase, dividir/justificar, banner da IA
 
-**Comece pelo passo 7.** Leia `docs/memoria_compactada.md`, implemente a store
-`memoria` + `compactarMemoria()` + tela de controle, e ligue a memória ao prompt
-da IA. Mantenha o princípio: **a memória reduz decisão, não manipula o usuário.**
+**Comece pelo passo 8.** Leia `docs/laboratorio_abordagens.md`, implemente a
+variação de estratégias de notificação, métricas por categoria × estratégia e a
+persistência da vencedora como memória `notification_strategy`.
 
 Bom trabalho. 🎯

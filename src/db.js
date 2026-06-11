@@ -1,10 +1,10 @@
 // Mira — armazenamento local (IndexedDB).
 // Local-first: tudo fica no próprio aparelho, funciona offline e sem login.
 //
-// Duas "tabelas": tarefas e historico (eventos).
+// "Tabelas": tarefas, historico (eventos) e memoria compactada.
 
 const DB_NAME = "mira";
-const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 let _dbPromise = null;
 
@@ -25,6 +25,13 @@ function openDB() {
           autoIncrement: true,
         });
         h.createIndex("em", "em", { unique: false });
+      }
+      if (!db.objectStoreNames.contains("memoria")) {
+        const m = db.createObjectStore("memoria", { keyPath: "id" });
+        m.createIndex("memory_type", "memory_type", { unique: false });
+        m.createIndex("is_active", "is_active", { unique: false });
+        m.createIndex("origem", "origem", { unique: false });
+        m.createIndex("criadaEm", "criadaEm", { unique: false });
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -136,5 +143,48 @@ export async function registrarEvento(tipo, tarefaId = null, extra = {}) {
 export async function listarHistorico(limite = 50) {
   const store = await tx("historico");
   const todos = await reqAsPromise(store.getAll());
-  return todos.sort((a, b) => b.em - a.em).slice(0, limite);
+  const ordenados = todos.sort((a, b) => b.em - a.em);
+  return limite ? ordenados.slice(0, limite) : ordenados;
+}
+
+// ---------- Memória compactada ----------
+
+export async function criarMemoria(dados) {
+  const agora = Date.now();
+  const memoria = {
+    id: dados.id ?? crypto.randomUUID(),
+    memory_type: dados.memory_type ?? "behavior",
+    content: dados.content ?? "",
+    confidence: dados.confidence ?? "baixa",
+    is_active: dados.is_active ?? true,
+    origem: dados.origem ?? "manual",
+    chave: dados.chave ?? null,
+    evidencias: dados.evidencias ?? {},
+    criadaEm: dados.criadaEm ?? agora,
+    atualizadaEm: agora,
+  };
+  const store = await tx("memoria", "readwrite");
+  await reqAsPromise(store.add(memoria));
+  return memoria;
+}
+
+export async function listarMemorias(apenasAtivas = false) {
+  const store = await tx("memoria");
+  const todas = await reqAsPromise(store.getAll());
+  const filtradas = apenasAtivas ? todas.filter((m) => m.is_active) : todas;
+  return filtradas.sort((a, b) => (b.atualizadaEm ?? b.criadaEm) - (a.atualizadaEm ?? a.criadaEm));
+}
+
+export async function atualizarMemoria(id, mudancas) {
+  const store = await tx("memoria", "readwrite");
+  const atual = await reqAsPromise(store.get(id));
+  if (!atual) throw new Error("Memória não encontrada: " + id);
+  const nova = { ...atual, ...mudancas, atualizadaEm: Date.now() };
+  await reqAsPromise(store.put(nova));
+  return nova;
+}
+
+export async function deletarMemoria(id) {
+  const store = await tx("memoria", "readwrite");
+  await reqAsPromise(store.delete(id));
 }

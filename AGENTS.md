@@ -1,7 +1,7 @@
 # AGENTS.md — Mira
 
 **Antes de qualquer coisa, leia `HANDOFF.md` por inteiro.** Ele explica o projeto,
-a arquitetura, o que já funciona e o que falta (passos 7 e 8).
+a arquitetura, o que já funciona e o que falta (passo 8 e backlog).
 
 ## Regras essenciais (resumo — detalhes no HANDOFF.md)
 
@@ -25,5 +25,5 @@ a arquitetura, o que já funciona e o que falta (passos 7 e 8).
 
 ## Próximo trabalho
 
-Passo 7 (memória compactada) e passo 8 (laboratório de abordagens).
+Passo 8 (laboratório de abordagens).
 Veja a seção 6 do `HANDOFF.md` e os docs em `docs/`.

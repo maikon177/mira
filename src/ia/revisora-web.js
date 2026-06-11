@@ -2,6 +2,9 @@
 // Chama a DeepSeek direto do browser (CORS liberado), sem servidor.
 // A chave fica no localStorage do aparelho — nunca no código/repo.
 
+import { listarMemorias } from "../db.js";
+import { formatarMemoriasParaPrompt } from "../memoria.js";
+
 const LS_KEY = "mira_deepseek_key";
 const LS_MODEL = "mira_deepseek_model";
 const BASE_URL = "https://api.deepseek.com";
@@ -31,6 +34,16 @@ async function carregarPrompt() {
   return _promptCache;
 }
 
+async function carregarPromptComMemoria() {
+  const prompt = await carregarPrompt();
+  try {
+    const memorias = await listarMemorias(true);
+    return prompt + formatarMemoriasParaPrompt(memorias);
+  } catch {
+    return prompt;
+  }
+}
+
 /**
  * Envia uma entrada bagunçada e devolve { tarefas[], proxima_acao_recomendada, ... }.
  * Lança erro com mensagem amigável se faltar chave ou a API falhar.
@@ -40,7 +53,7 @@ export async function reviewTaskInput(input) {
   if (!apiKey) throw new Error("Sem chave da IA. Cole sua chave nas configurações.");
   if (!input || !input.trim()) throw new Error("Nada para revisar.");
 
-  const systemPrompt = await carregarPrompt();
+  const systemPrompt = await carregarPromptComMemoria();
 
   const res = await fetch(`${BASE_URL}/chat/completions`, {
     method: "POST",

@@ -10,8 +10,19 @@ import {
   iniciarTarefa,
   cancelarTarefa,
   deletarTarefa,
+  criarMemoria,
+  listarMemorias,
+  atualizarMemoria,
+  deletarMemoria,
 } from "./db.js";
 import { proximaAcao, ordenarPorPrioridade } from "./prioridade.js";
+import {
+  compactarMemoria,
+  CONFIANCAS_MEMORIA,
+  rotuloConfiancaMemoria,
+  rotuloTipoMemoria,
+  TIPOS_MEMORIA,
+} from "./memoria.js";
 import {
   reviewTaskInput,
   getApiKey,
@@ -30,7 +41,7 @@ import {
 
 // Próxima ação atual (usada pelo modo foco e pela notificação)
 async function obterProximaAcaoAtual() {
-  return proximaAcao(await listarTarefas());
+  return proximaAcao(await listarTarefas(), await listarMemorias(true));
 }
 
 const $ = (sel) => document.querySelector(sel);
@@ -51,6 +62,7 @@ function irPara(tela) {
     atualizarConfigIA();
     renderCaixa();
   }
+  if (tela === "memoria") renderMemoria();
 }
 
 $$(".tab").forEach((t) =>
@@ -60,7 +72,7 @@ $$(".tab").forEach((t) =>
 // ---------- Tela Agora ----------
 async function renderAgora() {
   const tarefas = await listarTarefas();
-  const alvo = proximaAcao(tarefas);
+  const alvo = proximaAcao(tarefas, await listarMemorias(true));
   const wrap = $("#agora-wrap");
 
   if (!alvo) {
@@ -169,10 +181,11 @@ function flash(msg) {
 // ---------- Tela Hoje ----------
 async function renderHoje() {
   const tarefas = await listarTarefas();
+  const memorias = await listarMemorias(true);
   const abertas = tarefas.filter(
     (t) => !["concluida", "cancelada"].includes(t.status)
   );
-  const top = ordenarPorPrioridade(abertas).slice(0, 5);
+  const top = ordenarPorPrioridade(abertas, memorias).slice(0, 5);
   const list = $("#hoje-list");
 
   if (top.length === 0) {
@@ -314,6 +327,123 @@ async function renderCaixa() {
       </div>`
     )
     .join("");
+}
+
+// ---------- Memória compactada ----------
+$("#btn-compactar-memoria")?.addEventListener("click", async () => {
+  const btn = $("#btn-compactar-memoria");
+  btn.disabled = true;
+  setStatusMemoria("Analisando histórico...");
+  try {
+    const r = await compactarMemoria();
+    const msg =
+      r.encontradas === 0
+        ? "Ainda não há padrão suficiente para compactar."
+        : `Memória atualizada: ${r.criadas} nova(s), ${r.atualizadas} revisada(s).`;
+    setStatusMemoria(msg, r.encontradas === 0 ? "" : "ok");
+    renderMemoria();
+  } catch (e) {
+    setStatusMemoria(e.message, "erro");
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$("#btn-salvar-memoria")?.addEventListener("click", async () => {
+  const content = $("#memoria-content").value.trim();
+  if (!content) {
+    setStatusMemoria("Escreva a memória antes de salvar.", "erro");
+    return;
+  }
+  await criarMemoria({
+    memory_type: $("#memoria-type").value,
+    confidence: $("#memoria-confidence").value,
+    content,
+    origem: "manual",
+    is_active: true,
+  });
+  $("#memoria-content").value = "";
+  setStatusMemoria("Memória salva.", "ok");
+  renderMemoria();
+});
+
+async function renderMemoria() {
+  const list = $("#memoria-list");
+  if (!list) return;
+  const memorias = await listarMemorias(false);
+
+  preencherSelectMemoria("#memoria-type", TIPOS_MEMORIA);
+  preencherSelectMemoria("#memoria-confidence", CONFIANCAS_MEMORIA);
+
+  if (memorias.length === 0) {
+    list.innerHTML = `<div class="vazio"><div class="big">◌</div><p>Nenhuma memória salva ainda.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = memorias
+    .map(
+      (m) => `
+      <div class="memoria-item ${m.is_active ? "" : "muted"}" data-id="${m.id}">
+        <div class="item-top">
+          <span class="chip">${rotuloTipoMemoria(m.memory_type)}</span>
+          <span class="chip">${rotuloConfiancaMemoria(m.confidence)}</span>
+        </div>
+        <textarea class="memoria-edit" rows="3">${escapeHtml(m.content)}</textarea>
+        <div class="memoria-meta">
+          <span>${m.origem === "auto" ? "aprendida pelo uso" : "manual"}</span>
+          <span>${m.is_active ? "ativa" : "desativada"}</span>
+        </div>
+        <div class="memoria-actions">
+          <button class="btn" data-memoria-acao="salvar">Salvar</button>
+          <button class="btn btn-ghost" data-memoria-acao="toggle">${
+            m.is_active ? "Desativar" : "Ativar"
+          }</button>
+          <button class="btn btn-ghost" data-memoria-acao="apagar">Apagar</button>
+        </div>
+      </div>`
+    )
+    .join("");
+
+  list.querySelectorAll("[data-memoria-acao]").forEach((btn) =>
+    btn.addEventListener("click", async () => {
+      const item = btn.closest(".memoria-item");
+      const memoria = memorias.find((m) => m.id === item.dataset.id);
+      const acao = btn.dataset.memoriaAcao;
+      if (!memoria) return;
+
+      if (acao === "salvar") {
+        await atualizarMemoria(memoria.id, {
+          content: item.querySelector(".memoria-edit").value.trim(),
+          origem: "manual",
+          editadaManualmente: true,
+        });
+        setStatusMemoria("Memória editada.", "ok");
+      } else if (acao === "toggle") {
+        await atualizarMemoria(memoria.id, { is_active: !memoria.is_active });
+        setStatusMemoria(memoria.is_active ? "Memória desativada." : "Memória ativada.", "ok");
+      } else if (acao === "apagar") {
+        await deletarMemoria(memoria.id);
+        setStatusMemoria("Memória apagada.", "ok");
+      }
+      renderMemoria();
+    })
+  );
+}
+
+function preencherSelectMemoria(seletor, opcoes) {
+  const el = $(seletor);
+  if (!el || el.dataset.ready) return;
+  el.innerHTML = opcoes
+    .map((o) => `<option value="${o.valor}">${escapeHtml(o.rotulo)}</option>`)
+    .join("");
+  el.dataset.ready = "1";
+}
+
+function setStatusMemoria(msg, classe = "") {
+  const el = $("#memoria-status");
+  if (!el) return;
+  el.textContent = msg;
+  el.className = "hint" + (classe ? " " + classe : "");
 }
 
 // ---------- util ----------
