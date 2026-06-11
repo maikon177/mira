@@ -283,6 +283,70 @@ body {
   margin: 0;
 }
 
+/* Botão IA */
+.btn-ia {
+  background: linear-gradient(135deg, #2a1338, #3a1820);
+  border: 1px solid var(--accent-dim);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.btn-ia[disabled] {
+  opacity: 0.6;
+}
+.ia-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+#ia-status.erro {
+  color: var(--accent);
+}
+#ia-status.ok {
+  color: var(--ok);
+}
+
+/* Config da chave */
+.ia-config {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 4px 14px;
+}
+.ia-config summary {
+  cursor: pointer;
+  padding: 10px 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.ia-config[open] summary {
+  color: var(--text);
+}
+.ia-config input {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 12px;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+.ia-config input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 /* ---------- Tabbar ---------- */
 .tabbar {
   position: fixed;

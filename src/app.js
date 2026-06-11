@@ -9,8 +9,15 @@ import {
   adiarTarefa,
   iniciarTarefa,
   cancelarTarefa,
+  deletarTarefa,
 } from "./db.js";
 import { proximaAcao, ordenarPorPrioridade } from "./prioridade.js";
+import {
+  reviewTaskInput,
+  getApiKey,
+  setApiKey,
+  temApiKey,
+} from "./ia/revisora-web.js";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -26,7 +33,10 @@ function irPara(tela) {
   );
   if (tela === "agora") renderAgora();
   if (tela === "hoje") renderHoje();
-  if (tela === "caixa") renderCaixa();
+  if (tela === "caixa") {
+    atualizarConfigIA();
+    renderCaixa();
+  }
 }
 
 $$(".tab").forEach((t) =>
@@ -147,6 +157,85 @@ async function adicionar() {
 }
 
 $("#btn-add").addEventListener("click", adicionar);
+
+// ---------- IA: configuração da chave ----------
+function atualizarConfigIA() {
+  const config = $("#ia-config");
+  const status = $("#ia-status");
+  if (temApiKey()) {
+    config.removeAttribute("open");
+    config.querySelector("summary").textContent = "🔑 IA conectada ✓ (trocar chave)";
+  } else {
+    config.setAttribute("open", "");
+    config.querySelector("summary").textContent = "🔑 Configurar IA (cole sua chave)";
+    status.textContent = "Cole sua chave DeepSeek acima para ativar a revisão por IA.";
+  }
+  $("#ia-key").value = getApiKey();
+}
+
+$("#btn-salvar-key").addEventListener("click", () => {
+  setApiKey($("#ia-key").value);
+  setStatusIA(temApiKey() ? "Chave salva ✓" : "Chave vazia.", temApiKey() ? "ok" : "erro");
+  atualizarConfigIA();
+});
+
+function setStatusIA(msg, classe = "") {
+  const el = $("#ia-status");
+  el.textContent = msg;
+  el.className = "hint" + (classe ? " " + classe : "");
+}
+
+// ---------- IA: revisar a caixa ----------
+async function revisarComIA() {
+  const btn = $("#btn-revisar");
+  const tarefas = await listarTarefas();
+  const naoRevisadas = tarefas.filter(
+    (t) => !t.revisadaIA && !["concluida", "cancelada"].includes(t.status)
+  );
+  if (naoRevisadas.length === 0) {
+    setStatusIA("Nada novo pra revisar — adicione tarefas primeiro.", "erro");
+    return;
+  }
+  if (!temApiKey()) {
+    setStatusIA("Configure sua chave da IA primeiro.", "erro");
+    $("#ia-config").setAttribute("open", "");
+    return;
+  }
+
+  // Estado: carregando
+  btn.disabled = true;
+  btn.querySelector(".ia-label").textContent = "Revisando...";
+  btn.querySelector(".ia-spinner").hidden = false;
+  setStatusIA("A IA está organizando e priorizando suas tarefas...");
+
+  const entrada = naoRevisadas.map((t) => "- " + t.titulo).join("\n");
+
+  try {
+    const resultado = await reviewTaskInput(entrada);
+    const novas = Array.isArray(resultado.tarefas) ? resultado.tarefas : [];
+    if (novas.length === 0) throw new Error("A IA não retornou tarefas.");
+
+    // Substitui as soltas pelas estruturadas
+    for (const t of naoRevisadas) await deletarTarefa(t.id);
+    for (const nt of novas) await criarTarefa({ ...nt, revisadaIA: true });
+
+    setStatusIA(
+      `✓ ${novas.length} tarefa(s) organizadas. Foco: ${
+        resultado.proxima_acao_recomendada || "ver Tela Agora"
+      }`,
+      "ok"
+    );
+    renderCaixa();
+  } catch (e) {
+    setStatusIA(e.message, "erro");
+  } finally {
+    btn.disabled = false;
+    btn.querySelector(".ia-label").textContent = "✨ Revisar com IA";
+    btn.querySelector(".ia-spinner").hidden = true;
+  }
+}
+
+$("#btn-revisar").addEventListener("click", revisarComIA);
 
 async function renderCaixa() {
   const tarefas = await listarTarefas();

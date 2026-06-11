@@ -1,7 +1,7 @@
 // Mira — service worker simples para funcionar offline (local-first).
 // Estratégia: cache-first para os arquivos do app.
 
-const CACHE = "mira-v1";
+const CACHE = "mira-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,8 @@ const ASSETS = [
   "./src/app.js",
   "./src/db.js",
   "./src/prioridade.js",
+  "./src/ia/revisora-web.js",
+  "./src/ia/prompt_ia_revisora.md",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
 ];

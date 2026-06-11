@@ -59,6 +59,7 @@ export async function criarTarefa(dados) {
     proximaAcao: dados.proxima_acao ?? dados.proximaAcao ?? "",
     alertaSugerido: dados.alerta_sugerido ?? dados.alertaSugerido ?? null,
     status: dados.status ?? "aberta", // aberta | fazendo | concluida | adiada | cancelada
+    revisadaIA: dados.revisadaIA ?? false,
     adiamentos: 0,
     criadaEm: agora,
     atualizadaEm: agora,
@@ -118,6 +119,11 @@ export async function cancelarTarefa(id) {
   const t = await atualizarTarefa(id, { status: "cancelada" });
   await registrarEvento("tarefa_cancelada", id);
   return t;
+}
+
+export async function deletarTarefa(id) {
+  const store = await tx("tarefas", "readwrite");
+  await reqAsPromise(store.delete(id));
 }
 
 // ---------- Histórico ----------

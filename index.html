@@ -49,9 +49,28 @@
           placeholder="Ex: responder cliente João, comprar filamento preto, arrumar bico da Ender..."
         ></textarea>
         <button class="btn btn-primary" id="btn-add">Adicionar tarefa</button>
-        <p class="hint">
-          Uma linha vira uma tarefa. Depois a IA revisora pode reorganizar tudo.
+
+        <button class="btn btn-ia" id="btn-revisar">
+          <span class="ia-label">✨ Revisar com IA</span>
+          <span class="ia-spinner" hidden></span>
+        </button>
+        <p class="hint" id="ia-status">
+          Uma linha vira uma tarefa. A IA organiza, categoriza e prioriza a caixa.
         </p>
+
+        <!-- Configuração da chave (some quando já tem chave) -->
+        <details class="ia-config" id="ia-config">
+          <summary>🔑 Configurar IA</summary>
+          <input
+            type="password"
+            id="ia-key"
+            placeholder="Cole sua chave DeepSeek (sk-...)"
+            autocomplete="off"
+          />
+          <button class="btn btn-primary" id="btn-salvar-key">Salvar chave</button>
+          <p class="hint">A chave fica só neste aparelho. Nunca é enviada pro GitHub.</p>
+        </details>
+
         <div class="list-wrap" id="caixa-list"></div>
       </main>
     </section>
