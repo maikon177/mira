@@ -1,0 +1,331 @@
+/* Mira — mobile-first. Tema preto/branco com acento vermelho (a "mira"). */
+
+:root {
+  --bg: #0d0d0f;
+  --surface: #17171b;
+  --surface-2: #1f1f25;
+  --line: #2a2a32;
+  --text: #f4f4f6;
+  --muted: #9a9aa6;
+  --accent: #ef1f2e; /* vermelho da mira */
+  --accent-dim: #7a1118;
+  --alta: #ef1f2e;
+  --media: #f0a020;
+  --baixa: #4a9eff;
+  --ok: #2ec07a;
+  --radius: 18px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  display: flex;
+  flex-direction: column;
+  overscroll-behavior: none;
+}
+
+/* ---------- Views ---------- */
+.view {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  padding-top: var(--safe-top);
+  padding-bottom: calc(72px + var(--safe-bottom));
+  overflow-y: auto;
+}
+.view[data-active] {
+  display: flex;
+}
+
+.topbar {
+  padding: 18px 20px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.brand {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  position: relative;
+}
+.brand-dot::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.subtitle {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---------- Tela Agora ---------- */
+.agora-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 18px;
+}
+
+.agora-card {
+  width: 100%;
+  background: linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 26px 22px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  position: relative;
+  overflow: hidden;
+}
+.agora-card::before {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  border: 2px solid var(--accent-dim);
+  border-radius: 50%;
+  opacity: 0.35;
+}
+.agora-label {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.agora-titulo {
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 12px;
+}
+.agora-acao {
+  color: var(--text);
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 3px solid var(--accent);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+.agora-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.agora-motivo {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 14px 0 0;
+}
+
+.chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.chip.prio-Alta {
+  color: var(--alta);
+  border-color: var(--alta);
+}
+.chip.prio-Média {
+  color: var(--media);
+  border-color: var(--media);
+}
+.chip.prio-Baixa {
+  color: var(--baixa);
+  border-color: var(--baixa);
+}
+
+/* Botões de decisão */
+.acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 22px;
+}
+.btn {
+  border: none;
+  border-radius: 12px;
+  padding: 15px 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: transform 0.05s ease, background 0.15s ease;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-ok {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: #06301d;
+}
+.btn-full {
+  grid-column: 1 / -1;
+}
+.btn-ghost {
+  background: transparent;
+}
+
+/* Estado vazio */
+.vazio {
+  text-align: center;
+  color: var(--muted);
+  padding: 40px 20px;
+}
+.vazio .big {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+/* ---------- Listas (Hoje / Caixa) ---------- */
+.list-wrap {
+  padding: 8px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.item {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.item.done {
+  opacity: 0.45;
+}
+.item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.item-titulo {
+  font-weight: 600;
+  font-size: 16px;
+}
+.item-sub {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---------- Caixa ---------- */
+.caixa-wrap {
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+#caixa-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--text);
+  padding: 14px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+}
+#caixa-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.hint {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+/* ---------- Tabbar ---------- */
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(64px + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: rgba(13, 13, 15, 0.92);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  display: flex;
+}
+.tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+}
+.tab-ico {
+  font-size: 20px;
+  line-height: 1;
+}
+.tab[data-active] {
+  color: var(--accent);
+}
+
+@media (min-width: 640px) {
+  .view,
+  .tabbar {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .tabbar {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}

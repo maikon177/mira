@@ -1,0 +1,19 @@
+# Segredos — NUNCA commitar
+.env
+.env.local
+*.key
+
+# Dependências
+node_modules/
+
+# Build
+dist/
+build/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

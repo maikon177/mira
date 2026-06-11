@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#0d0d0f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="assets/icon-192.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Mira</title>
+  </head>
+  <body>
+    <!-- ===================== TELA AGORA ===================== -->
+    <section class="view" id="view-agora" data-active>
+      <header class="topbar">
+        <span class="brand"><span class="brand-dot"></span> Mira</span>
+        <span class="subtitle">menos cobrança, mais direção</span>
+      </header>
+
+      <main class="agora-wrap" id="agora-wrap">
+        <!-- preenchido por app.js -->
+      </main>
+    </section>
+
+    <!-- ===================== TELA HOJE ===================== -->
+    <section class="view" id="view-hoje">
+      <header class="topbar">
+        <span class="brand"><span class="brand-dot"></span> Hoje</span>
+        <span class="subtitle">no máximo 5 prioridades</span>
+      </header>
+      <main class="list-wrap" id="hoje-list"></main>
+    </section>
+
+    <!-- ===================== CAIXA DE ENTRADA ===================== -->
+    <section class="view" id="view-caixa">
+      <header class="topbar">
+        <span class="brand"><span class="brand-dot"></span> Caixa de entrada</span>
+        <span class="subtitle">jogue tudo aqui, organiza depois</span>
+      </header>
+      <main class="caixa-wrap">
+        <textarea
+          id="caixa-input"
+          rows="3"
+          placeholder="Ex: responder cliente João, comprar filamento preto, arrumar bico da Ender..."
+        ></textarea>
+        <button class="btn btn-primary" id="btn-add">Adicionar tarefa</button>
+        <p class="hint">
+          Uma linha vira uma tarefa. Depois a IA revisora pode reorganizar tudo.
+        </p>
+        <div class="list-wrap" id="caixa-list"></div>
+      </main>
+    </section>
+
+    <!-- ===================== NAV INFERIOR ===================== -->
+    <nav class="tabbar">
+      <button class="tab" data-go="agora" data-active>
+        <span class="tab-ico">◎</span><span>Agora</span>
+      </button>
+      <button class="tab" data-go="hoje">
+        <span class="tab-ico">☰</span><span>Hoje</span>
+      </button>
+      <button class="tab" data-go="caixa">
+        <span class="tab-ico">＋</span><span>Caixa</span>
+      </button>
+    </nav>
+
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "mira",
+  "version": "0.0.1",
+  "description": "Mira — assistente operacional pessoal: menos cobrança, mais direção.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "serve": "node scripts/serve.mjs",
+    "test:ia": "node --env-file=.env scripts/test-deepseek.mjs"
+  }
+}
