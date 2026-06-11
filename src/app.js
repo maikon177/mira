@@ -18,6 +18,20 @@ import {
   setApiKey,
   temApiKey,
 } from "./ia/revisora-web.js";
+import {
+  suportaNotificacao,
+  permissaoAtual,
+  pedirPermissao,
+  notificarProximaAcao,
+  ativarModoFoco,
+  desativarModoFoco,
+  modoFocoAtivo,
+} from "./notificacoes.js";
+
+// Próxima ação atual (usada pelo modo foco e pela notificação)
+async function obterProximaAcaoAtual() {
+  return proximaAcao(await listarTarefas());
+}
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -92,6 +106,13 @@ async function renderAgora() {
         <button class="btn" data-acao="adiar60">⏱ +1 hora</button>
         <button class="btn btn-ghost" data-acao="cancelar">✕ Cancelar</button>
       </div>
+
+      <div class="notif-row">
+        <button class="btn btn-ghost" id="btn-lembrar">🔔 Me lembrar</button>
+        <button class="btn btn-ghost" id="btn-foco">${
+          modoFocoAtivo() ? "🎯 Foco ativo" : "🎯 Modo foco"
+        }</button>
+      </div>
     </div>`;
 
   wrap.querySelectorAll("[data-acao]").forEach((b) =>
@@ -105,6 +126,44 @@ async function renderAgora() {
       renderAgora();
     })
   );
+
+  // 🔔 Me lembrar: dispara a notificação decisiva da próxima ação
+  wrap.querySelector("#btn-lembrar")?.addEventListener("click", async () => {
+    if (!suportaNotificacao()) return alert("Seu navegador não suporta notificações.");
+    const p = await pedirPermissao();
+    if (p !== "granted") return alert("Ative as notificações nas permissões do site.");
+    const ok = await notificarProximaAcao(alvo);
+    if (ok) flash("🔔 Notificação enviada — veja na barra de avisos.");
+  });
+
+  // 🎯 Modo foco: liga/desliga lembrete periódico
+  wrap.querySelector("#btn-foco")?.addEventListener("click", async () => {
+    if (modoFocoAtivo()) {
+      desativarModoFoco();
+      flash("Modo foco desligado.");
+    } else {
+      if (!suportaNotificacao()) return alert("Sem suporte a notificações.");
+      const p = await pedirPermissao();
+      if (p !== "granted") return alert("Ative as notificações primeiro.");
+      ativarModoFoco(30, obterProximaAcaoAtual); // a cada 30 min enquanto aberto
+      flash("🎯 Modo foco: vou lembrar a cada 30 min enquanto o app estiver aberto.");
+    }
+    renderAgora();
+  });
+}
+
+// Mensagem rápida no rodapé
+function flash(msg) {
+  let el = document.querySelector("#flash");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "flash";
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove("show"), 3500);
 }
 
 // ---------- Tela Hoje ----------
@@ -271,6 +330,14 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () =>
     navigator.serviceWorker.register("./sw.js").catch(() => {})
   );
+  // Quando o usuário decide pela notificação, o SW avisa para atualizar a tela
+  navigator.serviceWorker.addEventListener("message", (e) => {
+    if (e.data?.tipo === "decisao") {
+      const ativa = document.querySelector(".view[data-active]")?.id;
+      if (ativa === "view-agora") renderAgora();
+      else if (ativa === "view-hoje") renderHoje();
+    }
+  });
 }
 
 // Início
