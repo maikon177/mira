@@ -1,7 +1,7 @@
 # AGENTS.md — Mira
 
 **Antes de qualquer coisa, leia `HANDOFF.md` por inteiro.** Ele explica o projeto,
-a arquitetura, o que já funciona e o que falta (passo 8 e backlog).
+a arquitetura, o que já funciona e o backlog restante.
 
 ## Regras essenciais (resumo — detalhes no HANDOFF.md)
 
@@ -25,5 +25,5 @@ a arquitetura, o que já funciona e o que falta (passo 8 e backlog).
 
 ## Próximo trabalho
 
-Passo 8 (laboratório de abordagens).
+Backlog: push agendado, sync, Dividir/Justificar e banner da IA.
 Veja a seção 6 do `HANDOFF.md` e os docs em `docs/`.

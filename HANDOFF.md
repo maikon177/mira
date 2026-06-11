@@ -239,7 +239,9 @@ IA; é heurística + (opcionalmente) a IA resumindo padrões.
    Respeitar a economia de API (doc `arquitetura.md`: não mandar histórico inteiro,
    só memória compactada + tarefas relevantes + contexto do dia).
 
-### Passo 8 — Laboratório de abordagens  (ver `docs/laboratorio_abordagens.md`)
+### Passo 8 — Laboratório de abordagens  (ver `docs/laboratorio_abordagens.md`) ✅
+
+**Implementado localmente em 11/06/2026.**
 
 Testar **estratégias de notificação** e medir qual funciona por categoria.
 
@@ -351,11 +353,10 @@ do cache no `sw.js`** se mudou arquivos, e force reload no aparelho (o SW tem
 - [x] Passo 5 — IA revisora
 - [x] Passo 6 — Notificações decisivas
 - [x] Passo 7 — Memória compactada
-- [ ] **Passo 8 — Laboratório de abordagens**  ← próximo
-- [ ] Backlog: push agendado, sync Supabase, dividir/justificar, banner da IA
+- [x] Passo 8 — Laboratório de abordagens
+- [ ] **Backlog:** push agendado, sync Supabase, dividir/justificar, banner da IA
 
-**Comece pelo passo 8.** Leia `docs/laboratorio_abordagens.md`, implemente a
-variação de estratégias de notificação, métricas por categoria × estratégia e a
-persistência da vencedora como memória `notification_strategy`.
+Próximo trabalho: escolher um item do backlog. Push agendado e sync exigem
+infra externa; Dividir/Justificar e o banner da IA ainda cabem no MVP local-first.
 
 Bom trabalho. 🎯

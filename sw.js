@@ -1,7 +1,7 @@
 // Mira — service worker simples para funcionar offline (local-first).
 // Estratégia: cache-first para os arquivos do app.
 
-const CACHE = "mira-v4";
+const CACHE = "mira-v5";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,6 +9,7 @@ const ASSETS = [
   "./manifest.webmanifest",
   "./src/app.js",
   "./src/db.js",
+  "./src/laboratorio.js",
   "./src/memoria.js",
   "./src/prioridade.js",
   "./src/ia/revisora-web.js",
@@ -91,7 +92,7 @@ function idbReq(req) {
   });
 }
 
-async function aplicarDecisao(taskId, acao) {
+async function aplicarDecisao(taskId, acao, dadosNotificacao = {}) {
   const db = await idbOpen();
   // Atualiza a tarefa
   const store = db.transaction("tarefas", "readwrite").objectStore("tarefas");
@@ -126,7 +127,30 @@ async function aplicarDecisao(taskId, acao) {
     hist.add({
       tipo: mapa[acao] || "notificacao_respondida",
       tarefaId: taskId,
-      extra: { via: "notificacao", acao },
+      extra: {
+        via: "notificacao",
+        acao,
+        estrategia: dadosNotificacao.estrategia,
+        categoria: dadosNotificacao.categoria,
+      },
+      em: Date.now(),
+    })
+  );
+}
+
+async function registrarRespostaNotificacao(taskId, acao, dadosNotificacao = {}) {
+  const db = await idbOpen();
+  const hist = db.transaction("historico", "readwrite").objectStore("historico");
+  await idbReq(
+    hist.add({
+      tipo: "notificacao_respondida",
+      tarefaId: taskId,
+      extra: {
+        via: "notificacao",
+        acao: acao || "abrir",
+        estrategia: dadosNotificacao.estrategia,
+        categoria: dadosNotificacao.categoria,
+      },
       em: Date.now(),
     })
   );
@@ -134,13 +158,16 @@ async function aplicarDecisao(taskId, acao) {
 
 self.addEventListener("notificationclick", (e) => {
   const acao = e.action; // "" quando toca no corpo
-  const taskId = e.notification.data?.taskId;
+  const dadosNotificacao = e.notification.data || {};
+  const taskId = dadosNotificacao.taskId;
   e.notification.close();
 
   e.waitUntil(
     (async () => {
       if (acao && acao !== "abrir" && taskId) {
-        await aplicarDecisao(taskId, acao);
+        await aplicarDecisao(taskId, acao, dadosNotificacao);
+      } else if (taskId) {
+        await registrarRespostaNotificacao(taskId, acao, dadosNotificacao);
       }
       // Avisa as abas abertas pra atualizar a tela
       const clientsList = await self.clients.matchAll({

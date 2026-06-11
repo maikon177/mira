@@ -24,6 +24,10 @@ import {
   TIPOS_MEMORIA,
 } from "./memoria.js";
 import {
+  rotuloEstrategia,
+  atualizarLaboratorioAbordagens,
+} from "./laboratorio.js";
+import {
   reviewTaskInput,
   getApiKey,
   setApiKey,
@@ -145,7 +149,7 @@ async function renderAgora() {
     const p = await pedirPermissao();
     if (p !== "granted") return alert("Ative as notificações nas permissões do site.");
     const ok = await notificarProximaAcao(alvo);
-    if (ok) flash("🔔 Notificação enviada — veja na barra de avisos.");
+    if (ok?.ok) flash(`🔔 Notificação enviada: ${rotuloEstrategia(ok.estrategia)}.`);
   });
 
   // 🎯 Modo foco: liga/desliga lembrete periódico
@@ -335,12 +339,17 @@ $("#btn-compactar-memoria")?.addEventListener("click", async () => {
   btn.disabled = true;
   setStatusMemoria("Analisando histórico...");
   try {
-    const r = await compactarMemoria();
+    const [r, lab] = await Promise.all([
+      compactarMemoria(),
+      atualizarLaboratorioAbordagens(),
+    ]);
+    const totalNovas = r.criadas + lab.criadas;
+    const totalAtualizadas = r.atualizadas + lab.atualizadas;
     const msg =
-      r.encontradas === 0
+      r.encontradas === 0 && lab.vencedoras === 0
         ? "Ainda não há padrão suficiente para compactar."
-        : `Memória atualizada: ${r.criadas} nova(s), ${r.atualizadas} revisada(s).`;
-    setStatusMemoria(msg, r.encontradas === 0 ? "" : "ok");
+        : `Memória atualizada: ${totalNovas} nova(s), ${totalAtualizadas} revisada(s).`;
+    setStatusMemoria(msg, r.encontradas === 0 && lab.vencedoras === 0 ? "" : "ok");
     renderMemoria();
   } catch (e) {
     setStatusMemoria(e.message, "erro");
@@ -463,6 +472,7 @@ if ("serviceWorker" in navigator) {
   // Quando o usuário decide pela notificação, o SW avisa para atualizar a tela
   navigator.serviceWorker.addEventListener("message", (e) => {
     if (e.data?.tipo === "decisao") {
+      atualizarLaboratorioAbordagens().catch(() => {});
       const ativa = document.querySelector(".view[data-active]")?.id;
       if (ativa === "view-agora") renderAgora();
       else if (ativa === "view-hoje") renderHoje();

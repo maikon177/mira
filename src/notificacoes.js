@@ -3,6 +3,12 @@
 // trata os cliques dos botões direto no banco, mesmo com o app fechado.
 
 import { registrarEvento } from "./db.js";
+import {
+  atualizarLaboratorioAbordagens,
+  escolherEstrategiaNotificacao,
+  gerarConteudoNotificacao,
+  rotuloEstrategia,
+} from "./laboratorio.js";
 
 export function suportaNotificacao() {
   return "Notification" in window && "serviceWorker" in navigator;
@@ -23,25 +29,26 @@ export async function pedirPermissao() {
  * Dispara a notificação decisiva da próxima ação.
  * Monta texto no estilo do doc: ação + tempo + motivo + botões.
  */
-export async function notificarProximaAcao(tarefa, estrategia = "financeiro") {
+export async function notificarProximaAcao(tarefa, estrategia = null) {
   if (!tarefa) return false;
   if (permissaoAtual() !== "granted") return false;
 
   const reg = await navigator.serviceWorker.ready;
+  const estrategiaEscolhida = estrategia ?? (await escolherEstrategiaNotificacao(tarefa));
+  const conteudo = gerarConteudoNotificacao(tarefa, estrategiaEscolhida);
 
-  const tempo = tarefa.tempoEstimadoMin ? `Leva ${tarefa.tempoEstimadoMin} min. ` : "";
-  const motivo = tarefa.motivo ? tarefa.motivo : "";
-  const passo = tarefa.proximaAcao ? `1º passo: ${tarefa.proximaAcao}` : "";
-  const corpo = [`${tempo}${motivo}`.trim(), passo].filter(Boolean).join("\n");
-
-  await reg.showNotification(`Agora: ${tarefa.titulo}`, {
-    body: corpo || "Toque para abrir o Mira.",
+  await reg.showNotification(conteudo.titulo, {
+    body: conteudo.corpo || "Toque para abrir o Mira.",
     icon: "./assets/icon-192.png",
     badge: "./assets/icon-192.png",
     tag: "mira-proxima-acao", // substitui a anterior, não empilha
     renotify: true,
     requireInteraction: true, // não some sozinha — exige decisão
-    data: { taskId: tarefa.id },
+    data: {
+      taskId: tarefa.id,
+      estrategia: estrategiaEscolhida,
+      categoria: tarefa.categoria || "Geral",
+    },
     actions: [
       { action: "concluir", title: "✓ Concluir" },
       { action: "adiar15", title: "⏱ +15 min" },
@@ -49,8 +56,14 @@ export async function notificarProximaAcao(tarefa, estrategia = "financeiro") {
     ],
   });
 
-  await registrarEvento("notificacao_enviada", tarefa.id, { estrategia });
-  return true;
+  await registrarEvento("notificacao_enviada", tarefa.id, {
+    estrategia: estrategiaEscolhida,
+    estrategiaRotulo: rotuloEstrategia(estrategiaEscolhida),
+    categoria: tarefa.categoria || "Geral",
+    titulo: tarefa.titulo,
+  });
+  await atualizarLaboratorioAbordagens();
+  return { ok: true, estrategia: estrategiaEscolhida };
 }
 
 // ---------- Modo foco (lembrete periódico enquanto o app está vivo) ----------
