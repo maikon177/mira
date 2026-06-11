@@ -1,0 +1,46 @@
+{
+  "entrada_usuario": "Tenho que responder João, terminar a maquete, comprar filamento e arrumar o bico da Ender.",
+  "resposta_ia": {
+    "tarefas": [
+      {
+        "titulo": "Responder orçamento do João",
+        "categoria": "Cliente/Orçamento",
+        "prioridade": "Alta",
+        "tempo_estimado_minutos": 10,
+        "motivo": "Cliente aguardando e pode virar venda",
+        "proxima_acao": "Abrir a conversa do João e enviar resposta inicial",
+        "alerta_sugerido": "Hoje, o mais cedo possível"
+      },
+      {
+        "titulo": "Arrumar bico da Ender",
+        "categoria": "Manutenção/Produção",
+        "prioridade": "Alta",
+        "tempo_estimado_minutos": 20,
+        "motivo": "Pode bloquear a produção e atrasar entregas",
+        "proxima_acao": "Verificar se o bico está entupido",
+        "alerta_sugerido": "Após responder o João"
+      },
+      {
+        "titulo": "Terminar maquete",
+        "categoria": "Produção/Cliente",
+        "prioridade": "Alta",
+        "tempo_estimado_minutos": 90,
+        "motivo": "Tarefa grande ligada a entrega de cliente",
+        "proxima_acao": "Abrir o arquivo da maquete e identificar a próxima etapa",
+        "alerta_sugerido": "Hoje"
+      },
+      {
+        "titulo": "Comprar filamento",
+        "categoria": "Compra de material",
+        "prioridade": "Média",
+        "tempo_estimado_minutos": 15,
+        "motivo": "Evita falta de material, mas pode ser feito depois das tarefas de cliente",
+        "proxima_acao": "Verificar cor e quantidade necessária",
+        "alerta_sugerido": "Fim do dia"
+      }
+    ],
+    "proxima_acao_recomendada": "Responder orçamento do João",
+    "motivo_da_prioridade": "Baixo esforço, alto impacto e chance de venda",
+    "observacao": "Evitar começar tarefas criativas antes de resolver atendimento pendente."
+  }
+}
