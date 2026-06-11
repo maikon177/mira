@@ -20,3 +20,7 @@ npm-debug.log*
 
 # Screenshots temporários de teste no celular (adb)
 _phone.png
+
+# Build Android local
+android-wrapper/build/
+android-wrapper/*.keystore

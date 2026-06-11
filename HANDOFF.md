@@ -76,6 +76,7 @@ mira/
 ├── scripts/
 │   ├── serve.mjs           # servidor estático local (npm run serve)
 │   └── test-deepseek.mjs   # teste da IA via Node (npm run test:ia)
+├── android-wrapper/         # APK Android WebView fullscreen (sem Chrome)
 ├── docs/                   # documentação de CONCEITO (ler antes de cada passo)
 ├── .env                    # chave da DeepSeek p/ o teste Node (GITIGNORED)
 ├── .env.example
