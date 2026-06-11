@@ -91,3 +91,31 @@ Escolher stack inicial.
 ## Decisão 7 — Prioridade de negócio
 
 Para o usuário, tarefas ligadas a cliente, prazo, venda, entrega e máquina parada têm mais peso que ideias novas ou pesquisa aleatória.
+
+## Decisão 8 — Nome provisório do assistente
+
+Nome provisório escolhido:
+
+```text
+Mira
+```
+
+Motivo:
+
+- lembra foco;
+- lembra direção;
+- combina com a ideia de mirar na próxima ação;
+- é curto e fácil de falar;
+- funciona bem como nome de assistente.
+
+Frase provisória:
+
+```text
+Mira — menos cobrança, mais direção.
+```
+
+Status:
+
+```text
+Nome provisório, ainda pode mudar antes da identidade final.
+```
