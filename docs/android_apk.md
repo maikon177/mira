@@ -15,6 +15,11 @@ powershell -ExecutionPolicy Bypass -File .\android-wrapper\build-apk.ps1
 O app Android abre o Mira em uma WebView fullscreen, sem Chrome e sem barra de
 endereço. Os arquivos web atuais são empacotados dentro do APK.
 
+No APK, o Mira roda com `?android=1`: ele usa os arquivos locais do pacote e não
+registra Service Worker. Por isso os botões de notificação web do PWA ficam
+ocultos no app Android; tarefas, prioridade, caixa, IA, memória e laboratório
+continuam locais dentro do app.
+
 ## Instalação no Xiaomi/MIUI
 
 Se `adb install` retornar:

@@ -46,6 +46,7 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
+        settings.setDatabasePath(getDir("webview-db", MODE_PRIVATE).getPath());
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
@@ -58,7 +59,7 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
-        webView.loadUrl("http://127.0.0.1:" + PORT + "/");
+        webView.loadUrl("http://127.0.0.1:" + PORT + "/?android=1");
     }
 
     @Override
@@ -118,6 +119,7 @@ public class MainActivity extends Activity {
                     writeText(out, 405, "Method Not Allowed", "text/plain", "Metodo nao permitido");
                     return;
                 }
+                drainRequestHeaders(in);
 
                 String rawPath = requestLine.split(" ")[1];
                 String path = URLDecoder.decode(rawPath.split("\\?")[0], "UTF-8");
@@ -129,9 +131,11 @@ public class MainActivity extends Activity {
 
                 byte[] body = readAsset("web" + path);
                 if (body == null) {
+                    Log.w(TAG, "Asset nao encontrado: " + path);
                     writeText(out, 404, "Not Found", "text/plain", "Arquivo nao encontrado");
                     return;
                 }
+                Log.d(TAG, "Servindo asset: " + path + " (" + body.length + " bytes)");
                 writeBytes(out, 200, "OK", mimeType(path), body);
             } catch (Exception e) {
                 Log.e(TAG, "Erro ao servir asset", e);
@@ -152,7 +156,19 @@ public class MainActivity extends Activity {
             return line.toString("UTF-8");
         }
 
+        private void drainRequestHeaders(InputStream in) throws IOException {
+            while (readRequestLine(in) != null) {
+                // Apenas consome os headers. O servidor local nao precisa deles.
+            }
+        }
+
         private byte[] readAsset(String assetPath) {
+            byte[] normal = readAssetExact(assetPath);
+            if (normal != null) return normal;
+            return readAssetExact(assetPath.replace("/", "\\"));
+        }
+
+        private byte[] readAssetExact(String assetPath) {
             try (InputStream asset = getAssets().open(assetPath)) {
                 ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                 byte[] chunk = new byte[8192];
@@ -176,6 +192,8 @@ public class MainActivity extends Activity {
             String headers = "HTTP/1.1 " + code + " " + status + "\r\n"
                     + "Content-Type: " + type + "\r\n"
                     + "Content-Length: " + body.length + "\r\n"
+                    + "Access-Control-Allow-Origin: *\r\n"
+                    + "X-Content-Type-Options: nosniff\r\n"
                     + "Cache-Control: no-cache\r\n"
                     + "Connection: close\r\n\r\n";
             out.write(headers.getBytes(StandardCharsets.UTF_8));

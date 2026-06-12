@@ -2,6 +2,13 @@
 // Liga o armazenamento local (db.js) e o cálculo de prioridade (prioridade.js)
 // às três telas: Agora, Hoje e Caixa de entrada.
 
+window.addEventListener("error", (e) => {
+  console.error("Erro Mira:", e.message, e.filename, e.lineno);
+});
+window.addEventListener("unhandledrejection", (e) => {
+  console.error("Promessa rejeitada no Mira:", e.reason?.message || e.reason);
+});
+
 import {
   criarTarefa,
   listarTarefas,
@@ -50,6 +57,7 @@ async function obterProximaAcaoAtual() {
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
+const RODANDO_NO_APK_ANDROID = new URLSearchParams(location.search).has("android");
 
 // ---------- Navegação entre telas ----------
 function irPara(tela) {
@@ -123,12 +131,16 @@ async function renderAgora() {
         <button class="btn btn-ghost" data-acao="cancelar">✕ Cancelar</button>
       </div>
 
-      <div class="notif-row">
-        <button class="btn btn-ghost" id="btn-lembrar">🔔 Me lembrar</button>
-        <button class="btn btn-ghost" id="btn-foco">${
-          modoFocoAtivo() ? "🎯 Foco ativo" : "🎯 Modo foco"
-        }</button>
-      </div>
+      ${
+        RODANDO_NO_APK_ANDROID
+          ? ""
+          : `<div class="notif-row">
+              <button class="btn btn-ghost" id="btn-lembrar">🔔 Me lembrar</button>
+              <button class="btn btn-ghost" id="btn-foco">${
+                modoFocoAtivo() ? "🎯 Foco ativo" : "🎯 Modo foco"
+              }</button>
+            </div>`
+      }
     </div>`;
 
   wrap.querySelectorAll("[data-acao]").forEach((b) =>
@@ -465,7 +477,12 @@ function escapeHtml(s) {
 }
 
 // ---------- Service worker (offline) ----------
-if ("serviceWorker" in navigator) {
+if ("serviceWorker" in navigator && RODANDO_NO_APK_ANDROID) {
+  navigator.serviceWorker
+    .getRegistrations()
+    .then((regs) => regs.forEach((reg) => reg.unregister()))
+    .catch(() => {});
+} else if ("serviceWorker" in navigator) {
   window.addEventListener("load", () =>
     navigator.serviceWorker.register("./sw.js").catch(() => {})
   );

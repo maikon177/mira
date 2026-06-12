@@ -10,8 +10,10 @@ import {
   rotuloEstrategia,
 } from "./laboratorio.js";
 
+const RODANDO_NO_APK_ANDROID = new URLSearchParams(location.search).has("android");
+
 export function suportaNotificacao() {
-  return "Notification" in window && "serviceWorker" in navigator;
+  return !RODANDO_NO_APK_ANDROID && "Notification" in window && "serviceWorker" in navigator;
 }
 
 export function permissaoAtual() {

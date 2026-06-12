@@ -7,10 +7,17 @@ const DB_NAME = "mira";
 export const DB_VERSION = 2;
 
 let _dbPromise = null;
+let _usarFallbackLocal = false;
+const LS_FALLBACK_KEY = "mira_db_fallback";
+const RODANDO_NO_APK_ANDROID = new URLSearchParams(location.search).has("android");
 
 function openDB() {
+  if (!("indexedDB" in window)) {
+    if (RODANDO_NO_APK_ANDROID) _usarFallbackLocal = true;
+    return Promise.reject(new Error("IndexedDB indisponível"));
+  }
   if (_dbPromise) return _dbPromise;
-  _dbPromise = new Promise((resolve, reject) => {
+  const abertura = new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
@@ -37,11 +44,61 @@ function openDB() {
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
+  _dbPromise = (RODANDO_NO_APK_ANDROID ? withTimeout(abertura, 2500) : abertura).catch((erro) => {
+    if (RODANDO_NO_APK_ANDROID) {
+      console.warn("IndexedDB indisponível, usando fallback localStorage.", erro);
+      _usarFallbackLocal = true;
+    }
+    _dbPromise = null;
+    throw erro;
+  });
   return _dbPromise;
 }
 
 function tx(store, mode = "readonly") {
   return openDB().then((db) => db.transaction(store, mode).objectStore(store));
+}
+
+function withTimeout(promise, ms) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Tempo esgotado ao abrir IndexedDB")), ms);
+    promise.then(
+      (valor) => {
+        clearTimeout(timer);
+        resolve(valor);
+      },
+      (erro) => {
+        clearTimeout(timer);
+        reject(erro);
+      }
+    );
+  });
+}
+
+function fallbackDB() {
+  const vazio = { tarefas: [], historico: [], memoria: [], historicoSeq: 1 };
+  try {
+    return { ...vazio, ...(JSON.parse(localStorage.getItem(LS_FALLBACK_KEY)) || {}) };
+  } catch {
+    return vazio;
+  }
+}
+
+function salvarFallback(db) {
+  localStorage.setItem(LS_FALLBACK_KEY, JSON.stringify(db));
+}
+
+async function usarStore(nome, modo, operacao, fallback) {
+  if (_usarFallbackLocal) return fallback();
+  try {
+    const store = await tx(nome, modo);
+    return await operacao(store);
+  } catch (erro) {
+    if (!RODANDO_NO_APK_ANDROID) throw erro;
+    console.warn(`Falha no IndexedDB (${nome}), usando fallback localStorage.`, erro);
+    _usarFallbackLocal = true;
+    return fallback();
+  }
 }
 
 function reqAsPromise(request) {
@@ -71,30 +128,60 @@ export async function criarTarefa(dados) {
     criadaEm: agora,
     atualizadaEm: agora,
   };
-  const store = await tx("tarefas", "readwrite");
-  await reqAsPromise(store.add(tarefa));
+  await usarStore(
+    "tarefas",
+    "readwrite",
+    (store) => reqAsPromise(store.add(tarefa)),
+    () => {
+      const db = fallbackDB();
+      db.tarefas.push(tarefa);
+      salvarFallback(db);
+    }
+  );
   await registrarEvento("tarefa_criada", tarefa.id, { titulo: tarefa.titulo });
   return tarefa;
 }
 
 export async function listarTarefas(filtroStatus = null) {
-  const store = await tx("tarefas");
-  const todas = await reqAsPromise(store.getAll());
+  const todas = await usarStore(
+    "tarefas",
+    "readonly",
+    (store) => reqAsPromise(store.getAll()),
+    () => fallbackDB().tarefas
+  );
   return filtroStatus ? todas.filter((t) => t.status === filtroStatus) : todas;
 }
 
 export async function obterTarefa(id) {
-  const store = await tx("tarefas");
-  return reqAsPromise(store.get(id));
+  return usarStore(
+    "tarefas",
+    "readonly",
+    (store) => reqAsPromise(store.get(id)),
+    () => fallbackDB().tarefas.find((t) => t.id === id)
+  );
 }
 
 export async function atualizarTarefa(id, mudancas) {
-  const store = await tx("tarefas", "readwrite");
-  const atual = await reqAsPromise(store.get(id));
-  if (!atual) throw new Error("Tarefa não encontrada: " + id);
-  const nova = { ...atual, ...mudancas, atualizadaEm: Date.now() };
-  await reqAsPromise(store.put(nova));
-  return nova;
+  return usarStore(
+    "tarefas",
+    "readwrite",
+    async (store) => {
+      const atual = await reqAsPromise(store.get(id));
+      if (!atual) throw new Error("Tarefa não encontrada: " + id);
+      const nova = { ...atual, ...mudancas, atualizadaEm: Date.now() };
+      await reqAsPromise(store.put(nova));
+      return nova;
+    },
+    () => {
+      const db = fallbackDB();
+      const atual = db.tarefas.find((t) => t.id === id);
+      if (!atual) throw new Error("Tarefa não encontrada: " + id);
+      const nova = { ...atual, ...mudancas, atualizadaEm: Date.now() };
+      db.tarefas = db.tarefas.map((t) => (t.id === id ? nova : t));
+      salvarFallback(db);
+      return nova;
+    }
+  );
 }
 
 // Ações de decisão usadas pela Tela Agora ---------------------------
@@ -129,20 +216,46 @@ export async function cancelarTarefa(id) {
 }
 
 export async function deletarTarefa(id) {
-  const store = await tx("tarefas", "readwrite");
-  await reqAsPromise(store.delete(id));
+  await usarStore(
+    "tarefas",
+    "readwrite",
+    (store) => reqAsPromise(store.delete(id)),
+    () => {
+      const db = fallbackDB();
+      db.tarefas = db.tarefas.filter((t) => t.id !== id);
+      salvarFallback(db);
+    }
+  );
 }
 
 // ---------- Histórico ----------
 
 export async function registrarEvento(tipo, tarefaId = null, extra = {}) {
-  const store = await tx("historico", "readwrite");
-  await reqAsPromise(store.add({ tipo, tarefaId, extra, em: Date.now() }));
+  await usarStore(
+    "historico",
+    "readwrite",
+    (store) => reqAsPromise(store.add({ tipo, tarefaId, extra, em: Date.now() })),
+    () => {
+      const db = fallbackDB();
+      db.historico.push({
+        id: db.historicoSeq++,
+        tipo,
+        tarefaId,
+        extra,
+        em: Date.now(),
+      });
+      salvarFallback(db);
+    }
+  );
 }
 
 export async function listarHistorico(limite = 50) {
-  const store = await tx("historico");
-  const todos = await reqAsPromise(store.getAll());
+  const todos = await usarStore(
+    "historico",
+    "readonly",
+    (store) => reqAsPromise(store.getAll()),
+    () => fallbackDB().historico
+  );
   const ordenados = todos.sort((a, b) => b.em - a.em);
   return limite ? ordenados.slice(0, limite) : ordenados;
 }
@@ -163,28 +276,62 @@ export async function criarMemoria(dados) {
     criadaEm: dados.criadaEm ?? agora,
     atualizadaEm: agora,
   };
-  const store = await tx("memoria", "readwrite");
-  await reqAsPromise(store.add(memoria));
+  await usarStore(
+    "memoria",
+    "readwrite",
+    (store) => reqAsPromise(store.add(memoria)),
+    () => {
+      const db = fallbackDB();
+      db.memoria.push(memoria);
+      salvarFallback(db);
+    }
+  );
   return memoria;
 }
 
 export async function listarMemorias(apenasAtivas = false) {
-  const store = await tx("memoria");
-  const todas = await reqAsPromise(store.getAll());
+  const todas = await usarStore(
+    "memoria",
+    "readonly",
+    (store) => reqAsPromise(store.getAll()),
+    () => fallbackDB().memoria
+  );
   const filtradas = apenasAtivas ? todas.filter((m) => m.is_active) : todas;
   return filtradas.sort((a, b) => (b.atualizadaEm ?? b.criadaEm) - (a.atualizadaEm ?? a.criadaEm));
 }
 
 export async function atualizarMemoria(id, mudancas) {
-  const store = await tx("memoria", "readwrite");
-  const atual = await reqAsPromise(store.get(id));
-  if (!atual) throw new Error("Memória não encontrada: " + id);
-  const nova = { ...atual, ...mudancas, atualizadaEm: Date.now() };
-  await reqAsPromise(store.put(nova));
-  return nova;
+  return usarStore(
+    "memoria",
+    "readwrite",
+    async (store) => {
+      const atual = await reqAsPromise(store.get(id));
+      if (!atual) throw new Error("Memória não encontrada: " + id);
+      const nova = { ...atual, ...mudancas, atualizadaEm: Date.now() };
+      await reqAsPromise(store.put(nova));
+      return nova;
+    },
+    () => {
+      const db = fallbackDB();
+      const atual = db.memoria.find((m) => m.id === id);
+      if (!atual) throw new Error("Memória não encontrada: " + id);
+      const nova = { ...atual, ...mudancas, atualizadaEm: Date.now() };
+      db.memoria = db.memoria.map((m) => (m.id === id ? nova : m));
+      salvarFallback(db);
+      return nova;
+    }
+  );
 }
 
 export async function deletarMemoria(id) {
-  const store = await tx("memoria", "readwrite");
-  await reqAsPromise(store.delete(id));
+  await usarStore(
+    "memoria",
+    "readwrite",
+    (store) => reqAsPromise(store.delete(id)),
+    () => {
+      const db = fallbackDB();
+      db.memoria = db.memoria.filter((m) => m.id !== id);
+      salvarFallback(db);
+    }
+  );
 }

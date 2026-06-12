@@ -121,6 +121,15 @@
       </button>
     </nav>
 
-    <script type="module" src="src/app.js"></script>
+    <script>
+      import("./src/app.js").catch((erro) => {
+        console.error("Falha ao iniciar o Mira:", erro);
+        const alvo = document.getElementById("agora-wrap");
+        if (alvo) {
+          alvo.innerHTML =
+            '<div class="vazio"><div class="big">◎</div><p>Não consegui iniciar o app. Feche e abra novamente.</p></div>';
+        }
+      });
+    </script>
   </body>
 </html>
