@@ -50,7 +50,7 @@ Write-Host "Versao atualizada: v$novoName (code $novoCode)" -ForegroundColor Gre
 
 # Copiar APK para o Google Drive se existir
 $apkOrigem = "$PSScriptRoot\..\android\app\build\outputs\apk\debug\app-debug.apk"
-$driveDestino = "E:\google driver"
+$driveDestino = "G:\Meu Drive\Mira APKs"
 if ((Test-Path $apkOrigem) -and (Test-Path $driveDestino)) {
     $nomeApk = "mira-v$novoName.apk"
     Copy-Item $apkOrigem -Destination "$driveDestino\$nomeApk" -Force
