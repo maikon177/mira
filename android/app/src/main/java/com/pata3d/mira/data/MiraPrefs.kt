@@ -85,4 +85,9 @@ class MiraPrefs(context: Context) {
     var chatLimparAoSair: Boolean
         get() = prefs.getBoolean("chat_limpar_ao_sair", false)
         set(v) = prefs.edit().putBoolean("chat_limpar_ao_sair", v).apply()
+
+    // ── Autonomia da IA ── "SAFE" | "ASSISTANT" | "FREE" (padrão ASSISTANT)
+    var autonomyMode: String
+        get() = prefs.getString("autonomy_mode", "ASSISTANT") ?: "ASSISTANT"
+        set(v) = prefs.edit().putString("autonomy_mode", v).apply()
 }

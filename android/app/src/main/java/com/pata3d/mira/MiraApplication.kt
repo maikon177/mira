@@ -25,7 +25,10 @@ class MiraApplication : Application() {
             nextActionEngine = com.pata3d.mira.brain.NextActionEngine(com.pata3d.mira.brain.PriorityEngine()),
             suggestionEngine = com.pata3d.mira.brain.SuggestionEngine(),
             notificationPlanner = com.pata3d.mira.brain.NotificationPlanner(),
-            autonomyGate = com.pata3d.mira.brain.AutonomyGate { com.pata3d.mira.brain.AutonomyMode.ASSISTANT },
+            autonomyGate = com.pata3d.mira.brain.AutonomyGate {
+                runCatching { com.pata3d.mira.brain.AutonomyMode.valueOf(prefs.autonomyMode) }
+                    .getOrDefault(com.pata3d.mira.brain.AutonomyMode.ASSISTANT)
+            },
             memoryEngine = com.pata3d.mira.brain.LearningMemoryEngine(),
             repo = repository,
             decisionLogDao = com.pata3d.mira.data.MiraDatabase.get(this).decisionLogDao(),
@@ -45,6 +48,7 @@ class MiraApplication : Application() {
             prefs.checkinNoiteMin,
         )
         DeadlineMonitorWorker.agendar(this)
+        com.pata3d.mira.notification.HourlyReviewWorker.agendar(this)
         if (prefs.bolhaAtiva && Settings.canDrawOverlays(this)) {
             BolhaService.iniciar(this)
         }
