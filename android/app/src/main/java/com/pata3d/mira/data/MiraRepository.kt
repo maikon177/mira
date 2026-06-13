@@ -67,6 +67,18 @@ class MiraRepository(
         dataAgendada: Long? = null,
         contexto: String? = null,
         etapas: List<NovaEtapa> = emptyList(),
+        tipoTarefa: String = TipoTarefa.SIMPLES.name,
+        prazoEm: Long? = null,
+        compromissoEm: Long? = null,
+        lembreteEm: Long? = null,
+        microPasso: String = "",
+        protegerPrazo: Boolean = false,
+        isTarefaMaquina: Boolean = false,
+        tempoPrepMin: Int? = null,
+        tempoMaquinaMin: Int? = null,
+        tempoSecagemMin: Int? = null,
+        tempoFinalMin: Int? = null,
+        tipoAlerta: String = TipoAlerta.NENHUM.name,
     ): Tarefa {
         val tarefa = Tarefa(
             id = UUID.randomUUID().toString(),
@@ -79,6 +91,18 @@ class MiraRepository(
             revisadaIA = revisadaIA,
             dataAgendada = dataAgendada,
             contexto = contexto,
+            tipoTarefa = tipoTarefa,
+            prazoEm = prazoEm,
+            compromissoEm = compromissoEm,
+            lembreteEm = lembreteEm,
+            microPasso = microPasso,
+            protegerPrazo = protegerPrazo,
+            isTarefaMaquina = isTarefaMaquina,
+            tempoPrepMin = tempoPrepMin,
+            tempoMaquinaMin = tempoMaquinaMin,
+            tempoSecagemMin = tempoSecagemMin,
+            tempoFinalMin = tempoFinalMin,
+            tipoAlerta = tipoAlerta,
         )
         tarefaDao.inserir(tarefa)
         registrarHistorico("tarefa_criada", tarefaId = tarefa.id)

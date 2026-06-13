@@ -1,5 +1,8 @@
 package com.pata3d.mira.ui.screens
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,11 +12,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Alarm
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
@@ -22,12 +31,15 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,14 +50,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.pata3d.mira.data.RevisaoResult
 import com.pata3d.mira.data.TarefaRevisada
+import com.pata3d.mira.data.TipoTarefa
 import com.pata3d.mira.ui.theme.ActionGreen
 import com.pata3d.mira.ui.theme.TextPrimary
 import com.pata3d.mira.ui.viewmodel.EntradaViewModel
 import com.pata3d.mira.ui.viewmodel.RevisaoState
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,9 +73,25 @@ fun SheetAdicionar(
     onAbrirConfig: () -> Unit,
 ) {
     val revisao by vm.revisao.collectAsState()
+    val ui by vm.ui.collectAsState()
     var texto by remember { mutableStateOf("") }
     var tempoTotal by remember { mutableStateOf("") }
     var etapasTexto by remember { mutableStateOf("") }
+
+    val ctx = LocalContext.current
+
+    fun formatarDataHora(millis: Long): String =
+        SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(millis)
+
+    fun pedirDataHora(onResultado: (Long) -> Unit) {
+        val cal = Calendar.getInstance()
+        DatePickerDialog(ctx, { _, ano, mes, dia ->
+            TimePickerDialog(ctx, { _, hora, min ->
+                val resultado = Calendar.getInstance().apply { set(ano, mes, dia, hora, min, 0) }
+                onResultado(resultado.timeInMillis)
+            }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show()
+        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+    }
 
     ModalBottomSheet(
         onDismissRequest = { vm.resetar(); onFechar() },
@@ -93,13 +127,118 @@ fun SheetAdicionar(
                         colors = campoCores(),
                     )
 
+                    // Seletor de tipo
+                    val tipos = listOf(
+                        TipoTarefa.SIMPLES     to "Simples",
+                        TipoTarefa.LEMBRETE    to "Lembrete",
+                        TipoTarefa.COMPROMISSO to "Compromisso",
+                        TipoTarefa.ENTREGA     to "Entrega",
+                        TipoTarefa.PRODUCAO    to "Produção 3D",
+                    )
+                    Text("Tipo", style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(tipos) { (tipo, label) ->
+                            FilterChip(
+                                selected = ui.tipoTarefa == tipo.name,
+                                onClick  = { vm.setTipoTarefa(tipo.name) },
+                                label    = { Text(label) },
+                            )
+                        }
+                    }
+
+                    // Campos condicionais por tipo
+                    if (ui.tipoTarefa == TipoTarefa.LEMBRETE.name) {
+                        OutlinedTextField(
+                            value = ui.lembreteEm?.let { formatarDataHora(it) } ?: "",
+                            onValueChange = {},
+                            label = { Text("Data/hora do lembrete") },
+                            modifier = Modifier.fillMaxWidth().clickable { pedirDataHora(vm::setLembreteEm) },
+                            readOnly = true,
+                            shape = RoundedCornerShape(12.dp),
+                            trailingIcon = { Icon(Icons.Outlined.Schedule, null) },
+                            colors = campoCores(),
+                        )
+                    }
+
+                    if (ui.tipoTarefa == TipoTarefa.COMPROMISSO.name) {
+                        OutlinedTextField(
+                            value = ui.compromissoEm?.let { formatarDataHora(it) } ?: "",
+                            onValueChange = {},
+                            label = { Text("Data/hora do compromisso") },
+                            modifier = Modifier.fillMaxWidth().clickable { pedirDataHora(vm::setCompromissoEm) },
+                            readOnly = true,
+                            shape = RoundedCornerShape(12.dp),
+                            trailingIcon = { Icon(Icons.Outlined.Alarm, null) },
+                            colors = campoCores(),
+                        )
+                    }
+
+                    if (ui.tipoTarefa == TipoTarefa.ENTREGA.name || ui.tipoTarefa == TipoTarefa.PRODUCAO.name) {
+                        OutlinedTextField(
+                            value = ui.prazoEm?.let { formatarDataHora(it) } ?: "",
+                            onValueChange = {},
+                            label = { Text("Prazo de entrega") },
+                            modifier = Modifier.fillMaxWidth().clickable { pedirDataHora(vm::setPrazoEm) },
+                            readOnly = true,
+                            shape = RoundedCornerShape(12.dp),
+                            trailingIcon = { Icon(Icons.Outlined.Event, null) },
+                            colors = campoCores(),
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Proteger prazo", style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface)
+                            Switch(checked = ui.protegerPrazo, onCheckedChange = { vm.toggleProtegerPrazo() })
+                        }
+                    }
+
+                    if (ui.tipoTarefa == TipoTarefa.PRODUCAO.name) {
+                        Text("Tempo por fase (minutos)", style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(value = ui.tempoPrepMin, onValueChange = vm::setTempoPrepMin,
+                                label = { Text("Prep") }, modifier = Modifier.weight(1f),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = campoCores())
+                            OutlinedTextField(value = ui.tempoMaquinaMin, onValueChange = vm::setTempoMaquinaMin,
+                                label = { Text("Máquina") }, modifier = Modifier.weight(1f),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = campoCores())
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(value = ui.tempoSecagemMin, onValueChange = vm::setTempoSecagemMin,
+                                label = { Text("Secagem") }, modifier = Modifier.weight(1f),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = campoCores())
+                            OutlinedTextField(value = ui.tempoFinalMin, onValueChange = vm::setTempoFinalMin,
+                                label = { Text("Finaliz.") }, modifier = Modifier.weight(1f),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = campoCores())
+                        }
+                    }
+
+                    // Micro-passo
+                    OutlinedTextField(
+                        value = ui.microPasso,
+                        onValueChange = vm::setMicroPasso,
+                        label = { Text("Micro-passo (ação pequena agora)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 2,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = campoCores(),
+                    )
+
                     OutlinedTextField(
                         value = tempoTotal,
                         onValueChange = { tempoTotal = it.filter(Char::isDigit) },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Tempo total estimado em minutos (opcional)") },
                         leadingIcon = {
-                            androidx.compose.material3.Icon(Icons.Outlined.Timer, contentDescription = null)
+                            Icon(Icons.Outlined.Timer, contentDescription = null)
                         },
                         shape = RoundedCornerShape(14.dp),
                         colors = campoCores(),
@@ -143,7 +282,7 @@ fun SheetAdicionar(
                             Spacer(Modifier.width(8.dp))
                             Text("Organizando...")
                         } else {
-                            androidx.compose.material3.Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(if (vm.temChave()) "Organizar com IA" else "Configurar IA")
                         }
