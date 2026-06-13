@@ -19,6 +19,18 @@ class MiraApplication : Application() {
     val prefs by lazy { MiraPrefs(this) }
     val deepSeekClient by lazy { DeepSeekClient(prefs) }
     val repository by lazy { MiraRepository(MiraDatabase.get(this), prefs, deepSeekClient) }
+    val miraBrain: com.pata3d.mira.brain.MiraBrain by lazy {
+        com.pata3d.mira.brain.MiraBrain(
+            contextBuilder = com.pata3d.mira.brain.ContextSnapshotBuilder(repository),
+            nextActionEngine = com.pata3d.mira.brain.NextActionEngine(com.pata3d.mira.brain.PriorityEngine()),
+            suggestionEngine = com.pata3d.mira.brain.SuggestionEngine(),
+            notificationPlanner = com.pata3d.mira.brain.NotificationPlanner(),
+            autonomyGate = com.pata3d.mira.brain.AutonomyGate { com.pata3d.mira.brain.AutonomyMode.ASSISTANT },
+            memoryEngine = com.pata3d.mira.brain.LearningMemoryEngine(),
+            repo = repository,
+            decisionLogDao = com.pata3d.mira.data.MiraDatabase.get(this).decisionLogDao(),
+        )
+    }
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

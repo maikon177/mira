@@ -18,12 +18,14 @@ object MiraNotificationManager {
     const val CANAL_ALARME       = "mira_alarme"
     const val CANAL_RISCO        = "mira_risco_prazo"
     const val CANAL_MAQUINA      = "mira_maquina"
+    const val CANAL_SUGESTAO     = "mira_sugestao"
 
     const val NOTIF_PERSISTENTE  = 1
     const val NOTIF_CHECKIN      = 2
     const val NOTIF_ALARME       = 3
     const val NOTIF_RISCO        = 4
     const val NOTIF_MAQUINA      = 5
+    const val NOTIF_SUGESTAO     = 6
 
     fun criarCanais(ctx: Context) {
         val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -42,6 +44,9 @@ object MiraNotificationManager {
         nm.createNotificationChannel(NotificationChannel(
             CANAL_MAQUINA, "Checkin de máquina", NotificationManager.IMPORTANCE_DEFAULT
         ).apply { description = "Avisa quando a impressora/máquina termina" })
+        nm.createNotificationChannel(NotificationChannel(
+            CANAL_SUGESTAO, "Sugestões da Mira", NotificationManager.IMPORTANCE_DEFAULT
+        ).apply { description = "Sugestões úteis quando algo vale sua atenção" })
     }
 
     fun mostrarPersistente(ctx: Context, tarefa: Tarefa?) {
@@ -169,6 +174,21 @@ object MiraNotificationManager {
 
     // método antigo mantido como alias para compatibilidade com CheckInWorker existente
     fun mostrarAlertaCheckin(ctx: Context, tarefa: Tarefa) = mostrarCheckin(ctx, tarefa)
+
+    fun mostrarSugestao(ctx: Context, suggestion: com.pata3d.mira.brain.models.Suggestion) {
+        val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.notify(NOTIF_SUGESTAO,
+            NotificationCompat.Builder(ctx, CANAL_SUGESTAO)
+                .setSmallIcon(R.drawable.ic_notif)
+                .setContentTitle(suggestion.title)
+                .setContentText(suggestion.message)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(suggestion.message))
+                .setContentIntent(pendingActivity(ctx, 50))
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .build()
+        )
+    }
 
     private fun pendingActivity(ctx: Context, requestCode: Int): PendingIntent =
         PendingIntent.getActivity(ctx, requestCode,
