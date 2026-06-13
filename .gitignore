@@ -24,3 +24,16 @@ _phone.png
 # Build Android local
 android-wrapper/build/
 android-wrapper/*.keystore
+
+# Git worktrees
+.worktrees/
+
+# App nativo Android (Gradle)
+.tools/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.keystore
+.cxx/
