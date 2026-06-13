@@ -80,4 +80,9 @@ class MiraPrefs(context: Context) {
     var checkinNoiteMin: Int
         get() = prefs.getInt("checkin_noite", 18 * 60)
         set(v) = prefs.edit().putInt("checkin_noite", v).apply()
+
+    /** Limpa o histórico do chat ao sair da tela (padrão: ativado). */
+    var chatLimparAoSair: Boolean
+        get() = prefs.getBoolean("chat_limpar_ao_sair", true)
+        set(v) = prefs.edit().putBoolean("chat_limpar_ao_sair", v).apply()
 }

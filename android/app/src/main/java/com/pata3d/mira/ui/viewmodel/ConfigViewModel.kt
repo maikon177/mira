@@ -25,6 +25,7 @@ data class ConfigUiState(
     val alertasMaquina: Boolean = true,
     val checkinTardeMin: Int = 13 * 60,
     val checkinNoiteMin: Int = 18 * 60,
+    val chatLimparAoSair: Boolean = true,
 )
 
 class ConfigViewModel(private val repo: MiraRepository) : ViewModel() {
@@ -49,6 +50,7 @@ class ConfigViewModel(private val repo: MiraRepository) : ViewModel() {
         alertasMaquina     = prefs.alertasMaquinaAtivos,
         checkinTardeMin    = prefs.checkinTardeMin,
         checkinNoiteMin    = prefs.checkinNoiteMin,
+        chatLimparAoSair   = prefs.chatLimparAoSair,
     )
 
     fun setChave(v: String) { _ui.value = _ui.value.copy(chave = v, chaveSalva = false) }
@@ -73,6 +75,8 @@ class ConfigViewModel(private val repo: MiraRepository) : ViewModel() {
     fun toggleAlertasMaquina(v: Boolean) { prefs.alertasMaquinaAtivos = v; _ui.value = _ui.value.copy(alertasMaquina = v) }
     fun setCheckinTarde(min: Int) { prefs.checkinTardeMin = min; _ui.value = _ui.value.copy(checkinTardeMin = min) }
     fun setCheckinNoite(min: Int) { prefs.checkinNoiteMin = min; _ui.value = _ui.value.copy(checkinNoiteMin = min) }
+
+    fun toggleChatLimparAoSair(v: Boolean) { prefs.chatLimparAoSair = v; _ui.value = _ui.value.copy(chatLimparAoSair = v) }
 
     fun limparChat() = viewModelScope.launch { repo.limparChat() }
 }

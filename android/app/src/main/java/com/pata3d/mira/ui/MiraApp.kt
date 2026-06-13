@@ -161,7 +161,17 @@ fun MiraApp(
                     )
                 }
                 composable("calendario") { TelaCalendario(calendarioVm) }
-                composable("chat") { TelaChat(chatVm, onAbrirConfig = { nav.navigate("config") }) }
+                composable("chat") {
+                    val ctx = LocalContext.current
+                    DisposableEffect(Unit) {
+                        onDispose {
+                            if ((ctx.applicationContext as com.pata3d.mira.MiraApplication).repository.prefsRef.chatLimparAoSair) {
+                                chatVm.limpar()
+                            }
+                        }
+                    }
+                    TelaChat(chatVm, onAbrirConfig = { nav.navigate("config") })
+                }
                 composable("progresso") { TelaProgresso(progressoVm) }
                 composable("config") {
                     val ctx = LocalContext.current

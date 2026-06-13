@@ -123,6 +123,10 @@ fun TelaConfiguracao(
                 }
             }
 
+            SecaoCard("Conversa com IA", Icons.Outlined.PsychologyAlt) {
+                LinhaSwitch("Limpar histórico ao sair", ui.chatLimparAoSair, vm::toggleChatLimparAoSair)
+            }
+
             SecaoCard("Notificações", Icons.Outlined.Notifications) {
                 LinhaSwitch("Notificações ativas", ui.notificacoesAtivas, vm::toggleNotificacoes)
                 LinhaEditavel("Lembrete do dia", horaFormatada(ui.lembreteManhaMin)) { mostrarPickerLembrete = true }
