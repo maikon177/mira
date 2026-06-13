@@ -9,6 +9,8 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.Point
+import android.os.Build
 import android.graphics.drawable.GradientDrawable
 import android.os.IBinder
 import android.view.Gravity
@@ -162,7 +164,11 @@ class BolhaService : Service() {
 
         // Posiciona à direita da bolha; se não couber, vai para esquerda
         val largura = dpToPx(240)
-        val telaLargura = wm.currentWindowMetrics.bounds.width()
+        val telaLargura = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            wm.currentWindowMetrics.bounds.width()
+        } else {
+            val p = Point(); @Suppress("DEPRECATION") wm.defaultDisplay.getSize(p); p.x
+        }
         val xPainel = if (px + dpToPx(64) + largura < telaLargura) px + dpToPx(64) else px - largura - dpToPx(8)
 
         val params = WindowManager.LayoutParams(
