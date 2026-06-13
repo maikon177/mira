@@ -249,6 +249,7 @@ fun MiraApp(
                         onImportar = {
                             importLauncher.launch(arrayOf("application/json"))
                         },
+                        onSetAutonomyMode = { mode -> configVm.setAutonomyMode(mode) },
                     )
                 }
                 composable("cronograma") {

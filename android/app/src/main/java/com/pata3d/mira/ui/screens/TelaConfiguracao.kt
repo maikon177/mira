@@ -36,6 +36,7 @@ fun TelaConfiguracao(
     onAbrirCronograma: () -> Unit = {},
     onExportar: () -> Unit = {},
     onImportar: () -> Unit = {},
+    onSetAutonomyMode: (String) -> Unit = {},
 ) {
     val ui by vm.ui.collectAsState()
     var mostrarChave by remember { mutableStateOf(false) }
@@ -351,6 +352,34 @@ fun TelaConfiguracao(
                 }
                 backupMsg?.let { msg ->
                     Text(msg, style = MaterialTheme.typography.bodySmall, color = ActionGreen)
+                }
+            }
+
+            SecaoCard("Autonomia da IA", Icons.Outlined.Tune) {
+                val modos = listOf(
+                    Triple("SAFE",      "Modo seguro",     "A IA só sugere. Nada é alterado sem sua confirmação."),
+                    Triple("ASSISTANT", "Modo assistente", "A IA cria tarefas simples e micro-passos sozinha. Ações importantes pedem confirmação."),
+                    Triple("FREE",      "Modo livre",      "A IA também reagenda e edita sozinha. Ações críticas continuam pedindo confirmação."),
+                )
+                modos.forEach { (key, label, desc) ->
+                    val sel = ui.autonomyMode == key
+                    OutlinedButton(
+                        onClick = { onSetAutonomyMode(key) },
+                        border = BorderStroke(
+                            if (sel) 2.dp else 1.dp,
+                            if (sel) NeonPink else androidx.compose.ui.graphics.Color(0x44FFFFFF),
+                        ),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+                    ) {
+                        Column(Modifier.fillMaxWidth()) {
+                            Text(
+                                if (sel) "✓ $label" else label,
+                                color = if (sel) NeonPink else androidx.compose.ui.graphics.Color.White,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(desc, color = TextMuted, style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
                 }
             }
 
