@@ -18,19 +18,18 @@ class NotificationReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 when (intent.action) {
-                    ACTION_CONCLUIR  -> repo.concluirTarefa(id)
-                    ACTION_ADIAR     -> repo.adiarTarefa(id, 30)
-                    ACTION_INICIAR   -> repo.marcarTarefaIniciada(id)
-                    ACTION_DIVIDIR   -> { /* abre app; o PendingIntent já navega */ }
-                    ACTION_SONECA_5  -> repo.adiarTarefa(id, 5)
-                    ACTION_SONECA_10 -> repo.adiarTarefa(id, 10)
-                    ACTION_SONECA_30 -> repo.adiarTarefa(id, 30)
+                    ACTION_CONCLUIR  -> { repo.concluirTarefa(id); CheckInWorker.dispararAgora(ctx) }
+                    ACTION_ADIAR     -> { repo.adiarTarefa(id, 30); CheckInWorker.dispararAgora(ctx) }
+                    ACTION_INICIAR   -> { repo.marcarTarefaIniciada(id); CheckInWorker.dispararAgora(ctx) }
+                    ACTION_DIVIDIR   -> { /* abre app; PendingIntent já navega */ }
+                    ACTION_SONECA_5  -> { repo.adiarTarefa(id, 5); CheckInWorker.dispararAgora(ctx) }
+                    ACTION_SONECA_10 -> { repo.adiarTarefa(id, 10); CheckInWorker.dispararAgora(ctx) }
+                    ACTION_SONECA_30 -> { repo.adiarTarefa(id, 30); CheckInWorker.dispararAgora(ctx) }
                     "com.pata3d.mira.ALARME_COMPROMISSO" -> {
                         val tarefa = repo.buscarTarefa(id) ?: return@launch
                         MiraNotificationManager.mostrarAlarmeCompromisso(ctx, tarefa)
                     }
                 }
-                CheckInWorker.dispararAgora(ctx)
             } finally {
                 pending.finish()
             }
