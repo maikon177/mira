@@ -47,6 +47,18 @@ $newContent = $content `
 Set-Content $gradleFile $newContent -Encoding UTF8 -NoNewline
 
 Write-Host "Versao atualizada: v$novoName (code $novoCode)" -ForegroundColor Green
+
+# Copiar APK para o Google Drive se existir
+$apkOrigem = "$PSScriptRoot\..\android\app\build\outputs\apk\debug\app-debug.apk"
+$driveDestino = "G:\Meu Drive\Mira APKs"
+if ((Test-Path $apkOrigem) -and (Test-Path $driveDestino)) {
+    $nomeApk = "mira-v$novoName.apk"
+    Copy-Item $apkOrigem -Destination "$driveDestino\$nomeApk" -Force
+    Write-Host "APK enviado para o Drive: $nomeApk" -ForegroundColor Cyan
+} else {
+    Write-Host "APK nao encontrado (rode assembleDebug antes de bump)" -ForegroundColor Yellow
+}
+
 Write-Host ""
 Write-Host "Proximo passo:"
 Write-Host "  git add android/app/build.gradle.kts"
