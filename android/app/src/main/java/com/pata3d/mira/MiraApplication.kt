@@ -8,6 +8,7 @@ import com.pata3d.mira.data.MiraDatabase
 import com.pata3d.mira.data.MiraPrefs
 import com.pata3d.mira.data.MiraRepository
 import com.pata3d.mira.notification.CheckInWorker
+import com.pata3d.mira.notification.DeadlineMonitorWorker
 import com.pata3d.mira.notification.MiraNotificationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +26,7 @@ class MiraApplication : Application() {
         super.onCreate()
         MiraNotificationManager.criarCanais(this)
         CheckInWorker.agendar(this)
+        DeadlineMonitorWorker.agendar(this)
         if (prefs.bolhaAtiva && Settings.canDrawOverlays(this)) {
             BolhaService.iniciar(this)
         }
