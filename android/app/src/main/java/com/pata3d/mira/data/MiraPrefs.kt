@@ -83,6 +83,6 @@ class MiraPrefs(context: Context) {
 
     /** Limpa o histórico do chat ao sair da tela (padrão: ativado). */
     var chatLimparAoSair: Boolean
-        get() = prefs.getBoolean("chat_limpar_ao_sair", true)
+        get() = prefs.getBoolean("chat_limpar_ao_sair", false)
         set(v) = prefs.edit().putBoolean("chat_limpar_ao_sair", v).apply()
 }

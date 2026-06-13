@@ -25,7 +25,7 @@ data class ConfigUiState(
     val alertasMaquina: Boolean = true,
     val checkinTardeMin: Int = 13 * 60,
     val checkinNoiteMin: Int = 18 * 60,
-    val chatLimparAoSair: Boolean = true,
+    val chatLimparAoSair: Boolean = false,
 )
 
 class ConfigViewModel(private val repo: MiraRepository) : ViewModel() {
