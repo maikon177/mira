@@ -8,6 +8,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
@@ -106,6 +107,7 @@ fun MiraGlassCard(
 fun GlowPrimaryButton(
     texto: String,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
     val pulse = rememberInfiniteTransition(label = "glow")
     val alpha = pulse.animateFloat(
@@ -117,7 +119,7 @@ fun GlowPrimaryButton(
         ),
         label = "alpha"
     )
-    Box(modifier = modifier) {
+    Box(modifier = modifier.clickable(onClick = onClick)) {
         Box(
             modifier = Modifier
                 .matchParentSize()

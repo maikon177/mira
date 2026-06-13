@@ -211,12 +211,7 @@ private fun HeroAgoraOuPlaceholder(
                 }
                 Text("Organizar a caixa de entrada e escolher a proxima acao.", style = MaterialTheme.typography.displaySmall)
                 Text("Quando voce adicionar tarefas, a Mira destaca uma acao principal aqui.", style = MaterialTheme.typography.bodyLarge, color = TextMuted)
-                GlowPrimaryButton(texto = "Nova tarefa", modifier = Modifier.fillMaxWidth().height(78.dp))
-                Button(
-                    onClick = onAdicionar,
-                    modifier = Modifier.fillMaxWidth().height(78.dp).alpha(0.01f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                ) { Icon(Icons.Outlined.Add, contentDescription = null) }
+                GlowPrimaryButton(texto = "Nova tarefa", modifier = Modifier.fillMaxWidth().height(78.dp), onClick = onAdicionar)
             }
         }
         return
@@ -264,12 +259,7 @@ private fun HeroAgoraOuPlaceholder(
                 PainelCronometroTarefa(tarefa, agoraMillis, vm)
             }
 
-            GlowPrimaryButton(texto = "Concluir", modifier = Modifier.fillMaxWidth().height(78.dp))
-            Button(
-                onClick = { vm.concluir(tarefa.id) },
-                modifier = Modifier.fillMaxWidth().height(78.dp).alpha(0.01f),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            ) { Icon(Icons.Filled.Check, contentDescription = null) }
+            GlowPrimaryButton(texto = "Concluir", modifier = Modifier.fillMaxWidth().height(78.dp), onClick = { vm.concluir(tarefa.id) })
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 SecundarioBotao("Iniciar", Icons.Outlined.PlayArrow, Modifier.weight(1f)) { vm.iniciar(tarefa.id) }
