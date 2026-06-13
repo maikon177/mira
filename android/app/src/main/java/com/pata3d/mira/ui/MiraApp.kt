@@ -115,17 +115,19 @@ fun MiraApp(
     MiraBackground {
         Scaffold(
             containerColor = Color.Transparent,
-            floatingActionButtonPosition = FabPosition.Center,
             floatingActionButton = {
                 if (mostrarFab) {
-                    ExtendedFloatingActionButton(
+                    FloatingActionButton(
                         onClick = { mostrarSheet = true },
-                        icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                        text = { Text("Nova tarefa", style = MaterialTheme.typography.titleMedium) },
                         containerColor = Color(0xFFB01A7A),
                         contentColor = Color.White,
-                        modifier = Modifier.padding(bottom = 82.dp),
-                    )
+                        shape = CircleShape,
+                        modifier = Modifier
+                            .padding(bottom = 90.dp)
+                            .size(54.dp),
+                    ) {
+                        Icon(Icons.Outlined.Add, contentDescription = "Nova tarefa", modifier = Modifier.size(26.dp))
+                    }
                 }
             },
             bottomBar = {

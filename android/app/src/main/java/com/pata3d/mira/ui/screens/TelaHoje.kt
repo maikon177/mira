@@ -135,16 +135,6 @@ private fun CabecalhoHoje(
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             QuickIconBox(icon = Icons.Outlined.Add, onClick = onAdicionar)
             QuickIconBox(icon = Icons.Outlined.Settings, onClick = onAbrirConfig)
-            Box(
-                modifier = Modifier
-                    .size(54.dp)
-                    .background(Color(0x4421142D), CircleShape)
-                    .padding(3.dp)
-                    .background(Color(0x88511866), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("M", color = Color.White, style = MaterialTheme.typography.titleLarge)
-            }
         }
     }
 
