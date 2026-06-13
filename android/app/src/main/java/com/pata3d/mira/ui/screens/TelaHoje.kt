@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pata3d.mira.data.EtapaTarefa
+import com.pata3d.mira.data.NivelRisco
 import com.pata3d.mira.data.ResumoEtapas
 import com.pata3d.mira.data.Tarefa
 import com.pata3d.mira.domain.ContextoAtual
@@ -236,6 +238,21 @@ private fun HeroAgoraOuPlaceholder(
 
             Text(tarefa.titulo, style = MaterialTheme.typography.displaySmall, maxLines = 3, overflow = TextOverflow.Ellipsis)
 
+            // Badge de risco (só se ATENCAO, APERTADO ou CRITICO)
+            val nivelRisco = try { NivelRisco.valueOf(tarefa.nivelRisco) } catch (e: Exception) { NivelRisco.NENHUM }
+            BadgeRisco(nivelRisco, modifier = Modifier.padding(top = 4.dp))
+
+            // Micro-passo ou próxima ação como subtítulo
+            val passoVisivel = tarefa.microPasso.ifBlank { tarefa.proximaAcao }
+            if (passoVisivel.isNotBlank()) {
+                Text(
+                    text = passoVisivel,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 ChipInfo(tarefa.categoria)
                 tarefa.tempoEstimadoMin?.let { ChipInfo("Total ${it} min") }
@@ -360,6 +377,28 @@ private fun SecundarioBotao(
         Icon(icon, contentDescription = null)
         Spacer(Modifier.size(10.dp))
         Text(texto, style = MaterialTheme.typography.titleMedium)
+    }
+}
+
+@Composable
+private fun BadgeRisco(nivel: NivelRisco, modifier: Modifier = Modifier) {
+    val (cor, texto) = when (nivel) {
+        NivelRisco.CRITICO  -> Color(0xFFD32F2F) to "Prazo crítico"
+        NivelRisco.APERTADO -> Color(0xFFF57C00) to "Prazo apertado"
+        NivelRisco.ATENCAO  -> Color(0xFFF9A825) to "Atenção ao prazo"
+        else -> return
+    }
+    Surface(
+        color = cor.copy(alpha = 0.15f),
+        shape = RoundedCornerShape(8.dp),
+        modifier = modifier,
+    ) {
+        Text(
+            text = texto,
+            style = MaterialTheme.typography.labelSmall,
+            color = cor,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+        )
     }
 }
 
