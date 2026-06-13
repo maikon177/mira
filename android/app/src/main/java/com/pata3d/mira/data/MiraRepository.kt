@@ -294,6 +294,8 @@ class MiraRepository(
                 acoesJson = if (resposta.acoes.isEmpty()) null else "tem",
             )
         )
+        // Manter no máximo 40 mensagens; apaga as mais antigas silenciosamente
+        if (chatDao.contar() > 40) chatDao.aparar(40)
         return resposta
     }
 

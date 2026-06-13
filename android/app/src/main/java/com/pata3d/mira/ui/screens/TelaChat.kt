@@ -23,9 +23,11 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.PsychologyAlt
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -55,7 +57,7 @@ import com.pata3d.mira.ui.viewmodel.ChatViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun TelaChat(vm: ChatViewModel, onAbrirConfig: () -> Unit) {
+fun TelaChat(vm: ChatViewModel, onAbrirConfig: () -> Unit, onLimpar: () -> Unit = { vm.limpar() }) {
     val mensagens by vm.mensagens.collectAsState()
     val enviando by vm.enviando.collectAsState()
     val erro by vm.erro.collectAsState()
@@ -76,7 +78,7 @@ fun TelaChat(vm: ChatViewModel, onAbrirConfig: () -> Unit) {
                 .padding(padding)
                 .padding(horizontal = 18.dp, vertical = 14.dp)
         ) {
-            CabecalhoChat()
+            CabecalhoChat(temMensagens = mensagens.isNotEmpty(), onLimpar = onLimpar)
 
             if (!vm.temChave()) {
                 Box(
@@ -172,7 +174,7 @@ fun TelaChat(vm: ChatViewModel, onAbrirConfig: () -> Unit) {
 }
 
 @Composable
-private fun CabecalhoChat() {
+private fun CabecalhoChat(temMensagens: Boolean, onLimpar: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
@@ -186,6 +188,11 @@ private fun CabecalhoChat() {
         Column(Modifier.weight(1f)) {
             Text("Conversar", style = MaterialTheme.typography.displaySmall)
             Text("Assistente de tarefas", style = MaterialTheme.typography.headlineSmall, color = TextMuted)
+        }
+        if (temMensagens) {
+            IconButton(onClick = onLimpar) {
+                Icon(Icons.Outlined.Refresh, contentDescription = "Nova conversa", tint = TextMuted, modifier = Modifier.size(22.dp))
+            }
         }
         Box(
             modifier = Modifier

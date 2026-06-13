@@ -16,4 +16,11 @@ interface ChatDao {
 
     @Query("DELETE FROM chat_mensagens")
     suspend fun limparTudo()
+
+    @Query("SELECT COUNT(*) FROM chat_mensagens")
+    suspend fun contar(): Int
+
+    // Apaga as mensagens mais antigas além do limite
+    @Query("DELETE FROM chat_mensagens WHERE id NOT IN (SELECT id FROM chat_mensagens ORDER BY criadaEm DESC LIMIT :manter)")
+    suspend fun aparar(manter: Int)
 }
