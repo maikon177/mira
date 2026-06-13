@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.MyLocation
@@ -79,9 +80,24 @@ fun MiraApp(
     val rota = backEntry?.destination?.route ?: "hoje"
     val mostrarBarra = rota != "config" && rota != "cronograma"
 
+    val mostrarFab = mostrarBarra && rota != "progresso"
+
     MiraBackground {
         Scaffold(
             containerColor = Color.Transparent,
+            floatingActionButtonPosition = FabPosition.Center,
+            floatingActionButton = {
+                if (mostrarFab) {
+                    ExtendedFloatingActionButton(
+                        onClick = { mostrarSheet = true },
+                        icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                        text = { Text("Nova tarefa", style = MaterialTheme.typography.titleMedium) },
+                        containerColor = Color(0xFFB01A7A),
+                        contentColor = Color.White,
+                        modifier = Modifier.padding(bottom = 82.dp),
+                    )
+                }
+            },
             bottomBar = {
                 if (mostrarBarra) {
                     Box(
