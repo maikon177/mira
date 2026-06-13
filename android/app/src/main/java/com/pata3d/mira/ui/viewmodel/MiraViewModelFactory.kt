@@ -10,7 +10,7 @@ class MiraViewModelFactory(
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
-        modelClass.isAssignableFrom(HojeViewModel::class.java)       -> HojeViewModel(repo)
+        modelClass.isAssignableFrom(HojeViewModel::class.java)       -> HojeViewModel(repo, brain)
         modelClass.isAssignableFrom(CalendarioViewModel::class.java) -> CalendarioViewModel(repo)
         modelClass.isAssignableFrom(ChatViewModel::class.java)       -> ChatViewModel(repo)
         modelClass.isAssignableFrom(ProgressoViewModel::class.java)  -> ProgressoViewModel(repo)

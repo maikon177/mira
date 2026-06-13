@@ -97,6 +97,7 @@ fun TelaHoje(
                     vm = vm,
                     onAdicionar = onAdicionar,
                     onEditar = onEditar,
+                    reason = ui.heroReason,
                 )
             }
 
@@ -195,6 +196,7 @@ private fun HeroAgoraOuPlaceholder(
     vm: HojeViewModel,
     onAdicionar: () -> Unit,
     onEditar: (Tarefa) -> Unit = {},
+    reason: String = "",
 ) {
     if (tarefa == null) {
         MiraGlassCard(modifier = Modifier.fillMaxWidth()) {
@@ -254,6 +256,15 @@ private fun HeroAgoraOuPlaceholder(
                     Spacer(Modifier.width(4.dp))
                     Text("Definir primeiro passo", style = MaterialTheme.typography.bodySmall)
                 }
+            }
+
+            if (reason.isNotBlank()) {
+                Text(
+                    text = reason,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = NeonPinkSoft,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
