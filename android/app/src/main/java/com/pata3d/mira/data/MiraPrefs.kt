@@ -57,4 +57,27 @@ class MiraPrefs(context: Context) {
     var bolhaAtiva: Boolean
         get() = prefs.getBoolean("bolha_ativa", false)
         set(v) = prefs.edit().putBoolean("bolha_ativa", v).apply()
+
+    // ── Intensidade de alertas ──
+    var alertasCompromissoAtivos: Boolean
+        get() = prefs.getBoolean("alertas_compromisso", true)
+        set(v) = prefs.edit().putBoolean("alertas_compromisso", v).apply()
+
+    var alertasRiscoPrazoAtivos: Boolean
+        get() = prefs.getBoolean("alertas_risco_prazo", true)
+        set(v) = prefs.edit().putBoolean("alertas_risco_prazo", v).apply()
+
+    var alertasMaquinaAtivos: Boolean
+        get() = prefs.getBoolean("alertas_maquina", true)
+        set(v) = prefs.edit().putBoolean("alertas_maquina", v).apply()
+
+    /** Horário do check-in da tarde em minutos (padrão 13:00 = 780). */
+    var checkinTardeMin: Int
+        get() = prefs.getInt("checkin_tarde", 13 * 60)
+        set(v) = prefs.edit().putInt("checkin_tarde", v).apply()
+
+    /** Horário do check-in da noite em minutos (padrão 18:00 = 1080). */
+    var checkinNoiteMin: Int
+        get() = prefs.getInt("checkin_noite", 18 * 60)
+        set(v) = prefs.edit().putInt("checkin_noite", v).apply()
 }

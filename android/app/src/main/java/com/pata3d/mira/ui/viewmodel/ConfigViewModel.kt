@@ -20,6 +20,11 @@ data class ConfigUiState(
     val tema: String = "escuro",
     val maxSugestoes: Int = 3,
     val sugestaoDestravarAtiva: Boolean = true,
+    val alertasCompromisso: Boolean = true,
+    val alertasRiscoPrazo: Boolean = true,
+    val alertasMaquina: Boolean = true,
+    val checkinTardeMin: Int = 13 * 60,
+    val checkinNoiteMin: Int = 18 * 60,
 )
 
 class ConfigViewModel(private val repo: MiraRepository) : ViewModel() {
@@ -39,6 +44,11 @@ class ConfigViewModel(private val repo: MiraRepository) : ViewModel() {
         tema = prefs.tema,
         maxSugestoes = prefs.maxSugestoes,
         sugestaoDestravarAtiva = prefs.sugestaoDestravarAtiva,
+        alertasCompromisso = prefs.alertasCompromissoAtivos,
+        alertasRiscoPrazo  = prefs.alertasRiscoPrazoAtivos,
+        alertasMaquina     = prefs.alertasMaquinaAtivos,
+        checkinTardeMin    = prefs.checkinTardeMin,
+        checkinNoiteMin    = prefs.checkinNoiteMin,
     )
 
     fun setChave(v: String) { _ui.value = _ui.value.copy(chave = v, chaveSalva = false) }
@@ -57,6 +67,12 @@ class ConfigViewModel(private val repo: MiraRepository) : ViewModel() {
     fun setTema(v: String) { prefs.tema = v; _ui.value = _ui.value.copy(tema = v) }
     fun setMaxSugestoes(v: Int) { prefs.maxSugestoes = v; _ui.value = _ui.value.copy(maxSugestoes = v) }
     fun toggleDestravar(v: Boolean) { prefs.sugestaoDestravarAtiva = v; _ui.value = _ui.value.copy(sugestaoDestravarAtiva = v) }
+
+    fun toggleAlertasCompromisso(v: Boolean) { prefs.alertasCompromissoAtivos = v; _ui.value = _ui.value.copy(alertasCompromisso = v) }
+    fun toggleAlertasRisco(v: Boolean) { prefs.alertasRiscoPrazoAtivos = v; _ui.value = _ui.value.copy(alertasRiscoPrazo = v) }
+    fun toggleAlertasMaquina(v: Boolean) { prefs.alertasMaquinaAtivos = v; _ui.value = _ui.value.copy(alertasMaquina = v) }
+    fun setCheckinTarde(min: Int) { prefs.checkinTardeMin = min; _ui.value = _ui.value.copy(checkinTardeMin = min) }
+    fun setCheckinNoite(min: Int) { prefs.checkinNoiteMin = min; _ui.value = _ui.value.copy(checkinNoiteMin = min) }
 
     fun limparChat() = viewModelScope.launch { repo.limparChat() }
 }

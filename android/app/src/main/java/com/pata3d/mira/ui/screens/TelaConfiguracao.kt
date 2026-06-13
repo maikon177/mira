@@ -39,6 +39,8 @@ fun TelaConfiguracao(
     var bolhaAtiva by remember { mutableStateOf(BolhaService.isRunning) }
     var mostrarPickerLembrete by remember { mutableStateOf(false) }
     var mostrarPickerSilencio by remember { mutableStateOf(false) }
+    var mostrarPickerTarde by remember { mutableStateOf(false) }
+    var mostrarPickerNoite by remember { mutableStateOf(false) }
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     var temOverlay by remember { mutableStateOf(temPermissaoOverlay()) }
@@ -166,6 +168,58 @@ fun TelaConfiguracao(
                     },
                     title = { Text("Início do silêncio") },
                     text = { TimePicker(state = stateInicio) },
+                )
+            }
+
+            SecaoCard("Alertas e Alarmes", Icons.Outlined.NotificationImportant) {
+                Text("Controle quais tipos de alerta o Mira pode disparar.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                LinhaSwitch("Alarmes de compromisso", ui.alertasCompromisso, vm::toggleAlertasCompromisso)
+                LinhaSwitch("Alerta de prazo apertado", ui.alertasRiscoPrazo, vm::toggleAlertasRisco)
+                LinhaSwitch("Checkin de máquina/impressão", ui.alertasMaquina, vm::toggleAlertasMaquina)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Text("Check-ins diários", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                LinhaEditavel("Manhã", horaFormatada(ui.lembreteManhaMin)) { mostrarPickerLembrete = true }
+                LinhaEditavel("Tarde", horaFormatada(ui.checkinTardeMin)) { mostrarPickerTarde = true }
+                LinhaEditavel("Noite", horaFormatada(ui.checkinNoiteMin)) { mostrarPickerNoite = true }
+            }
+
+            if (mostrarPickerTarde) {
+                val state = rememberTimePickerState(
+                    initialHour = ui.checkinTardeMin / 60,
+                    initialMinute = ui.checkinTardeMin % 60,
+                )
+                AlertDialog(
+                    onDismissRequest = { mostrarPickerTarde = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            vm.setCheckinTarde(state.hour * 60 + state.minute)
+                            mostrarPickerTarde = false
+                        }) { Text("OK") }
+                    },
+                    dismissButton = { TextButton(onClick = { mostrarPickerTarde = false }) { Text("Cancelar") } },
+                    title = { Text("Check-in da tarde") },
+                    text = { TimePicker(state = state) },
+                )
+            }
+            if (mostrarPickerNoite) {
+                val state = rememberTimePickerState(
+                    initialHour = ui.checkinNoiteMin / 60,
+                    initialMinute = ui.checkinNoiteMin % 60,
+                )
+                AlertDialog(
+                    onDismissRequest = { mostrarPickerNoite = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            vm.setCheckinNoite(state.hour * 60 + state.minute)
+                            mostrarPickerNoite = false
+                        }) { Text("OK") }
+                    },
+                    dismissButton = { TextButton(onClick = { mostrarPickerNoite = false }) { Text("Cancelar") } },
+                    title = { Text("Check-in da noite") },
+                    text = { TimePicker(state = state) },
                 )
             }
 
