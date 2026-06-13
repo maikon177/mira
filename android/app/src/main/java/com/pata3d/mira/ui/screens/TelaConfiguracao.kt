@@ -289,7 +289,7 @@ fun TelaConfiguracao(
 
             // Sobre
             SecaoCard("Sobre", Icons.Outlined.Info) {
-                Text("Mira 1.0.0", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text("Mira ${com.pata3d.mira.BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                 Text("Tarefa certa, na hora certa, com o tamanho certo.",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

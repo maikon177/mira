@@ -118,7 +118,7 @@ private fun CabecalhoHoje(
 
     Row(verticalAlignment = Alignment.Top) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Sua proxima acao", style = MaterialTheme.typography.displaySmall)
+            Text("Sua próxima ação", style = MaterialTheme.typography.displaySmall)
             Text(dataHoje, style = MaterialTheme.typography.titleMedium, color = NeonPink)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -209,8 +209,8 @@ private fun HeroAgoraOuPlaceholder(
                     Spacer(Modifier.weight(1f))
                     ChipInfo("Sem tarefa ativa")
                 }
-                Text("Organizar a caixa de entrada e escolher a proxima acao.", style = MaterialTheme.typography.displaySmall)
-                Text("Quando voce adicionar tarefas, a Mira destaca uma acao principal aqui.", style = MaterialTheme.typography.bodyLarge, color = TextMuted)
+                Text("Organizar a caixa de entrada e escolher a próxima ação.", style = MaterialTheme.typography.displaySmall)
+                Text("Quando você adicionar tarefas, a Mira destaca a ação principal aqui.", style = MaterialTheme.typography.bodyLarge, color = TextMuted)
                 GlowPrimaryButton(texto = "Nova tarefa", modifier = Modifier.fillMaxWidth().height(78.dp), onClick = onAdicionar)
             }
         }
