@@ -603,4 +603,50 @@ class MiraRepository(
         }
         return tarefaDao.contarConcluidasHoje(cal.timeInMillis)
     }
+
+    suspend fun exportarJsonAsync(): String {
+        val tarefas = tarefaDao.listarTodas().filter { it.status in listOf("aberta", "em_andamento") }
+        val arr = org.json.JSONArray()
+        tarefas.forEach { t ->
+            arr.put(org.json.JSONObject().apply {
+                put("titulo", t.titulo)
+                put("categoria", t.categoria)
+                put("prioridade", t.prioridade)
+                put("motivo", t.motivo)
+                put("proximaAcao", t.proximaAcao)
+                put("microPasso", t.microPasso)
+                put("tipoTarefa", t.tipoTarefa)
+                if (t.tempoEstimadoMin != null) put("tempoEstimadoMin", t.tempoEstimadoMin)
+                if (t.prazoEm != null) put("prazoEm", t.prazoEm)
+                if (t.compromissoEm != null) put("compromissoEm", t.compromissoEm)
+                if (t.dataAgendada != null) put("dataAgendada", t.dataAgendada)
+            })
+        }
+        return arr.toString(2)
+    }
+
+    suspend fun importarJson(json: String): Int {
+        val arr = org.json.JSONArray(json)
+        var count = 0
+        for (i in 0 until arr.length()) {
+            val o = arr.getJSONObject(i)
+            val titulo = o.optString("titulo").trim()
+            if (titulo.isBlank()) continue
+            criarTarefa(
+                titulo = titulo,
+                categoria = o.optString("categoria", "Geral"),
+                prioridade = o.optString("prioridade", "Media"),
+                motivo = o.optString("motivo"),
+                proximaAcao = o.optString("proximaAcao"),
+                microPasso = o.optString("microPasso"),
+                tipoTarefa = o.optString("tipoTarefa", TipoTarefa.SIMPLES.name),
+                tempoEstimadoMin = if (o.has("tempoEstimadoMin")) o.optInt("tempoEstimadoMin") else null,
+                prazoEm = if (o.has("prazoEm")) o.optLong("prazoEm") else null,
+                compromissoEm = if (o.has("compromissoEm")) o.optLong("compromissoEm") else null,
+                dataAgendada = if (o.has("dataAgendada")) o.optLong("dataAgendada") else null,
+            )
+            count++
+        }
+        return count
+    }
 }

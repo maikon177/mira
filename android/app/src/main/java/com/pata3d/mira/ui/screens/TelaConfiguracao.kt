@@ -34,6 +34,8 @@ fun TelaConfiguracao(
     onToggleBolha: (Boolean) -> Unit = {},
     temPermissaoOverlay: () -> Boolean = { false },
     onAbrirCronograma: () -> Unit = {},
+    onExportar: () -> Unit = {},
+    onImportar: () -> Unit = {},
 ) {
     val ui by vm.ui.collectAsState()
     var mostrarChave by remember { mutableStateOf(false) }
@@ -316,6 +318,39 @@ fun TelaConfiguracao(
                             Text("Apagar histórico do chat")
                         }
                     }
+                }
+            }
+
+            val backupMsg by vm.backupMsg.collectAsState()
+
+            SecaoCard("Dados e Backup", Icons.Outlined.SaveAlt) {
+                Text(
+                    "Exporta as tarefas abertas. O import adiciona sem apagar as existentes.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = onExportar,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                    ) {
+                        Icon(Icons.Outlined.Upload, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Exportar")
+                    }
+                    OutlinedButton(
+                        onClick = onImportar,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                    ) {
+                        Icon(Icons.Outlined.Download, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Importar")
+                    }
+                }
+                backupMsg?.let { msg ->
+                    Text(msg, style = MaterialTheme.typography.bodySmall, color = ActionGreen)
                 }
             }
 

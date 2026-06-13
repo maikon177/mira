@@ -84,4 +84,25 @@ class ConfigViewModel(private val repo: MiraRepository) : ViewModel() {
     fun toggleChatLimparAoSair(v: Boolean) { prefs.chatLimparAoSair = v; _ui.value = _ui.value.copy(chatLimparAoSair = v) }
 
     fun limparChat() = viewModelScope.launch { repo.limparChat() }
+
+    private val _backupMsg = MutableStateFlow<String?>(null)
+    val backupMsg: StateFlow<String?> = _backupMsg.asStateFlow()
+
+    fun exportar(escrever: suspend (String) -> Unit) = viewModelScope.launch {
+        runCatching {
+            val json = repo.exportarJsonAsync()
+            escrever(json)
+            _backupMsg.value = "Backup exportado."
+        }.onFailure { _backupMsg.value = "Erro ao exportar: ${it.message}" }
+    }
+
+    fun importar(ler: suspend () -> String) = viewModelScope.launch {
+        runCatching {
+            val json = ler()
+            val count = repo.importarJson(json)
+            _backupMsg.value = "$count tarefa(s) importada(s)."
+        }.onFailure { _backupMsg.value = "Erro ao importar: ${it.message}" }
+    }
+
+    fun limparBackupMsg() { _backupMsg.value = null }
 }

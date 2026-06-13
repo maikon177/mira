@@ -1,5 +1,7 @@
 package com.pata3d.mira.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
@@ -75,6 +77,34 @@ fun MiraApp(
     var mostrarSheet by remember { mutableStateOf(false) }
     var tarefaEditando by remember { mutableStateOf<Tarefa?>(null) }
     val scope = rememberCoroutineScope()
+
+    val ctx = LocalContext.current
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) {
+            configVm.exportar { json ->
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    ctx.contentResolver.openOutputStream(uri)?.use { it.write(json.toByteArray()) }
+                }
+            }
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            configVm.importar {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    ctx.contentResolver.openInputStream(uri)?.use { stream ->
+                        stream.readBytes().toString(Charsets.UTF_8)
+                    } ?: ""
+                }
+            }
+        }
+    }
 
     val backEntry by nav.currentBackStackEntryAsState()
     val rota = backEntry?.destination?.route ?: "hoje"
@@ -190,25 +220,32 @@ fun MiraApp(
                 }
                 composable("progresso") { TelaProgresso(progressoVm) }
                 composable("config") {
-                    val ctx = LocalContext.current
+                    val ctxConfig = LocalContext.current
                     TelaConfiguracao(
                         vm = configVm,
                         onVoltar = { nav.popBackStack() },
                         onToggleBolha = { ligar ->
                             if (ligar) {
                                 if (temPermissaoOverlay()) {
-                                    BolhaService.iniciar(ctx)
+                                    BolhaService.iniciar(ctxConfig)
                                     repo.prefsRef.bolhaAtiva = true
                                 } else {
                                     onPedirOverlay()
                                 }
                             } else {
-                                BolhaService.parar(ctx)
+                                BolhaService.parar(ctxConfig)
                                 repo.prefsRef.bolhaAtiva = false
                             }
                         },
                         temPermissaoOverlay = temPermissaoOverlay,
                         onAbrirCronograma = { nav.navigate("cronograma") },
+                        onExportar = {
+                            val nome = "mira-backup-${java.text.SimpleDateFormat("yyyyMMdd-HHmm", java.util.Locale.getDefault()).format(java.util.Date())}.json"
+                            exportLauncher.launch(nome)
+                        },
+                        onImportar = {
+                            importLauncher.launch(arrayOf("application/json"))
+                        },
                     )
                 }
                 composable("cronograma") {
