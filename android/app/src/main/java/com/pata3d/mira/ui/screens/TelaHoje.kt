@@ -132,10 +132,7 @@ private fun CabecalhoHoje(
             Text("Sua próxima ação", style = MaterialTheme.typography.displaySmall)
             Text(dataHoje, style = MaterialTheme.typography.titleMedium, color = NeonPink)
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            QuickIconBox(icon = Icons.Outlined.Add, onClick = onAdicionar)
-            QuickIconBox(icon = Icons.Outlined.Settings, onClick = onAbrirConfig)
-        }
+        QuickIconBox(icon = Icons.Outlined.Settings, onClick = onAbrirConfig)
     }
 
     Row(
