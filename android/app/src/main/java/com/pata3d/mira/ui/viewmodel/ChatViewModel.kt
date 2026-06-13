@@ -8,7 +8,10 @@ import com.pata3d.mira.data.MiraRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class ChatViewModel(private val repo: MiraRepository) : ViewModel() {
+class ChatViewModel(
+    private val repo: MiraRepository,
+    private val brain: com.pata3d.mira.brain.MiraBrain? = null,
+) : ViewModel() {
 
     val mensagens: StateFlow<List<ChatMessage>> =
         repo.observarChat().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -32,7 +35,24 @@ class ChatViewModel(private val repo: MiraRepository) : ViewModel() {
             _erro.value = null
             _acoesPendentes.value = emptyList()
             runCatching { repo.enviarMensagemChat(texto.trim()) }
-                .onSuccess { _acoesPendentes.value = it.acoes }
+                .onSuccess { resposta ->
+                    if (brain == null) {
+                        _acoesPendentes.value = resposta.acoes
+                    } else {
+                        val pendentes = mutableListOf<com.pata3d.mira.data.AcaoIA>()
+                        for (acao in resposta.acoes) {
+                            val intent = brain.intentDe(acao.tipo)
+                            when (brain.evaluateAiAction(intent)) {
+                                com.pata3d.mira.brain.models.PermissionResult.EXECUTE_AUTOMATICALLY ->
+                                    runCatching { repo.aplicarAcaoIA(acao) }
+                                com.pata3d.mira.brain.models.PermissionResult.REQUIRE_CONFIRMATION ->
+                                    pendentes += acao
+                                com.pata3d.mira.brain.models.PermissionResult.BLOCKED -> Unit
+                            }
+                        }
+                        _acoesPendentes.value = pendentes
+                    }
+                }
                 .onFailure { _erro.value = "Nao consegui fechar essa resposta agora. Tenta de novo em seguida." }
             _enviando.value = false
         }
