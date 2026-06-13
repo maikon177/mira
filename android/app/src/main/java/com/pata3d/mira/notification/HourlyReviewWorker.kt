@@ -16,6 +16,8 @@ class HourlyReviewWorker(
 
     override suspend fun doWork(): Result {
         val app = applicationContext as? MiraApplication ?: return Result.success()
+        // Limpeza de manutenção, independente de notificações estarem ligadas.
+        app.miraBrain.limparLogsAntigos()
         if (!app.prefs.notificacoesAtivas) return Result.success()
 
         val suggestion = app.miraBrain.reviewHourly() ?: return Result.success()

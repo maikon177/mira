@@ -19,6 +19,7 @@ import com.pata3d.mira.ui.theme.MiraTheme
 class MainActivity : ComponentActivity() {
 
     private val mostrarDialogNotif = mutableStateOf(false)
+    private val mostrarDialogMiui = mutableStateOf(false)
 
     private val pedirPermissaoNotif = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -38,6 +39,11 @@ class MainActivity : ComponentActivity() {
             ) {
                 mostrarDialogNotif.value = true
             }
+        }
+
+        val prefs = (application as MiraApplication).prefs
+        if (Build.MANUFACTURER.equals("Xiaomi", ignoreCase = true) && !prefs.pediuWhitelistBateria) {
+            mostrarDialogMiui.value = true
         }
 
         val repo = (application as MiraApplication).repository
@@ -81,7 +87,50 @@ class MainActivity : ComponentActivity() {
                         },
                     )
                 }
+                if (mostrarDialogMiui.value && !mostrarDialogNotif.value) {
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = {
+                            mostrarDialogMiui.value = false
+                            (application as MiraApplication).prefs.pediuWhitelistBateria = true
+                        },
+                        title = { androidx.compose.material3.Text("Liberar a Mira na bateria") },
+                        text = {
+                            androidx.compose.material3.Text(
+                                "No Xiaomi/MIUI, o sistema costuma encerrar apps em segundo plano. " +
+                                "Para a revisão de hora em hora e os alarmes funcionarem com o app fechado, " +
+                                "ative \"Sem restrições\" na bateria e ligue o início automático da Mira."
+                            )
+                        },
+                        confirmButton = {
+                            androidx.compose.material3.TextButton(onClick = {
+                                mostrarDialogMiui.value = false
+                                (application as MiraApplication).prefs.pediuWhitelistBateria = true
+                                abrirConfigBateriaMiui()
+                            }) { androidx.compose.material3.Text("Abrir ajustes") }
+                        },
+                        dismissButton = {
+                            androidx.compose.material3.TextButton(onClick = {
+                                mostrarDialogMiui.value = false
+                                (application as MiraApplication).prefs.pediuWhitelistBateria = true
+                            }) { androidx.compose.material3.Text("Agora não") }
+                        },
+                    )
+                }
             }
+        }
+    }
+
+    /** Tenta abrir a tela de início automático da MIUI; cai para ajustes do app se falhar. */
+    private fun abrirConfigBateriaMiui() {
+        val tentativas = listOf(
+            Intent().setClassName(
+                "com.miui.securitycenter",
+                "com.miui.permcenter.autostart.AutoStartManagementActivity",
+            ),
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")),
+        )
+        for (intent in tentativas) {
+            try { startActivity(intent); return } catch (_: Exception) { /* tenta o próximo */ }
         }
     }
 }

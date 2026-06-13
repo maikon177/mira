@@ -90,4 +90,9 @@ class MiraPrefs(context: Context) {
     var autonomyMode: String
         get() = prefs.getString("autonomy_mode", "ASSISTANT") ?: "ASSISTANT"
         set(v) = prefs.edit().putString("autonomy_mode", v).apply()
+
+    // ── Whitelist de bateria MIUI/Xiaomi (mostrar prompt só uma vez) ──
+    var pediuWhitelistBateria: Boolean
+        get() = prefs.getBoolean("pediu_whitelist_bateria", false)
+        set(v) = prefs.edit().putBoolean("pediu_whitelist_bateria", v).apply()
 }

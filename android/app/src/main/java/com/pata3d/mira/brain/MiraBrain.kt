@@ -35,6 +35,11 @@ class MiraBrain(
         decisionLogDao.inserir(DecisionLogDb(selectedTaskId = action.taskId, reason = action.reason))
     }
 
+    /** Purga logs de decisão antigos para a tabela não crescer sem limite (padrão: 14 dias). */
+    suspend fun limparLogsAntigos(antesDe: Long = System.currentTimeMillis() - 14L * 24 * 3_600_000L) {
+        decisionLogDao.limparAntigos(antesDe)
+    }
+
     /** Revisão horária: melhor sugestão se vale notificar; null caso contrário. */
     suspend fun reviewHourly(): Suggestion? {
         val context = contextBuilder.build()

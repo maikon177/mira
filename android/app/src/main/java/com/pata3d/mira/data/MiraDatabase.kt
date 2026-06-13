@@ -100,7 +100,9 @@ abstract class MiraDatabase : RoomDatabase() {
                 "mira.db",
             )
                 .addMigrations(MIGRATION_3_4, MIGRATION_4_5)
-                .fallbackToDestructiveMigration()
+                // SEM fallbackToDestructiveMigration: se faltar uma migração, o Room lança
+                // IllegalStateException (crash visível) em vez de APAGAR os dados do usuário
+                // em silêncio. Toda mudança de schema exige um novo MIGRATION_N_(N+1) acima.
                 .build()
                 .also { INSTANCE = it }
         }
