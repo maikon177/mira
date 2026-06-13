@@ -14,8 +14,8 @@ class BootReceiver : BroadcastReceiver() {
         CheckInWorker.agendar(ctx)
         CheckInWorker.dispararAgora(ctx)
         val repo = (ctx.applicationContext as MiraApplication).repository
-        // TODO Task 12: val prefs = repo.prefsRef
-        // TODO Task 12: CheckInWorker.agendarCheckins(ctx, prefs.lembreteManhaMin, prefs.checkinTardeMin, prefs.checkinNoiteMin)
+        val prefs = repo.prefsRef
+        CheckInWorker.agendarCheckins(ctx, prefs.lembreteManhaMin, prefs.checkinTardeMin, prefs.checkinNoiteMin)
         CoroutineScope(Dispatchers.IO).launch {
             val compromissos = repo.listarCompromissosFuturos()
             AlarmScheduler.reagendarTodos(ctx, compromissos)

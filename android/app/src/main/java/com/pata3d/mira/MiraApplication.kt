@@ -26,6 +26,12 @@ class MiraApplication : Application() {
         super.onCreate()
         MiraNotificationManager.criarCanais(this)
         CheckInWorker.agendar(this)
+        CheckInWorker.agendarCheckins(
+            this,
+            prefs.lembreteManhaMin,
+            prefs.checkinTardeMin,
+            prefs.checkinNoiteMin,
+        )
         DeadlineMonitorWorker.agendar(this)
         if (prefs.bolhaAtiva && Settings.canDrawOverlays(this)) {
             BolhaService.iniciar(this)
