@@ -43,4 +43,7 @@ interface TarefaDao {
 
     @Query("SELECT * FROM tarefas WHERE id = :id LIMIT 1")
     suspend fun buscarPorId(id: String): Tarefa?
+
+    @Query("SELECT COUNT(*) FROM tarefas WHERE status = 'concluida' AND concluidaEm >= :inicioDoDia")
+    suspend fun contarConcluidasHoje(inicioDoDia: Long): Int
 }

@@ -25,6 +25,7 @@ data class HojeUiState(
     val restoDoDia: List<Tarefa> = emptyList(),
     val totalAbertas: Int = 0,
     val agoraMillis: Long = System.currentTimeMillis(),
+    val concluidasHoje: Int = 0,
 )
 
 class HojeViewModel(private val repo: MiraRepository) : ViewModel() {
@@ -87,6 +88,7 @@ class HojeViewModel(private val repo: MiraRepository) : ViewModel() {
         )
 
         val resto = ranking.filter { it.id != hero?.id }.take(5)
+        val concluidasHoje = repo.concluidasHoje()
 
         _ui.value = HojeUiState(
             contexto = contexto,
@@ -96,6 +98,7 @@ class HojeViewModel(private val repo: MiraRepository) : ViewModel() {
             restoDoDia = resto,
             totalAbertas = disponiveis.size,
             agoraMillis = _ui.value.agoraMillis,
+            concluidasHoje = concluidasHoje,
         )
     }
 

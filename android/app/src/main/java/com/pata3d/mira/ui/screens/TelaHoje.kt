@@ -101,6 +101,16 @@ fun TelaHoje(
             }
 
             item { SecaoResto(ui.restoDoDia, onEditar = onEditar) }
+
+            item {
+                val hora = remember(ui.agoraMillis) {
+                    java.util.Calendar.getInstance().also { it.timeInMillis = ui.agoraMillis }
+                        .get(java.util.Calendar.HOUR_OF_DAY)
+                }
+                if (hora in 17..21) {
+                    CartaoFechoDia(concluidasHoje = ui.concluidasHoje)
+                }
+            }
         }
     }
 }
@@ -468,4 +478,34 @@ private fun formatarCronometro(acumuladoSeg: Long, iniciadoEm: Long?, agoraMilli
     val minutos = (total % 3600) / 60
     val segundos = total % 60
     return if (horas > 0) "%02d:%02d:%02d".format(horas, minutos, segundos) else "%02d:%02d".format(minutos, segundos)
+}
+
+@Composable
+private fun CartaoFechoDia(concluidasHoje: Int) {
+    MiraGlassCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text("Vamos fechar o dia?", style = MaterialTheme.typography.titleLarge, color = NeonPink)
+            if (concluidasHoje > 0) {
+                Text(
+                    "Você concluiu $concluidasHoje tarefa${if (concluidasHoje > 1) "s" else ""} hoje.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Text(
+                    "Nenhuma tarefa concluída ainda — o dia ainda não acabou.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                "Anote o que ficou para amanhã e descanse.",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextMuted,
+            )
+        }
+    }
 }
