@@ -59,6 +59,11 @@ class ConfigViewModel(private val repo: MiraRepository) : ViewModel() {
         _ui.value = _ui.value.copy(chaveSalva = true)
     }
 
+    fun apagarChave() {
+        repo.setDeepSeekKey("")
+        _ui.value = _ui.value.copy(chave = "", chaveSalva = false)
+    }
+
     fun toggleModoAvancado(v: Boolean) { prefs.modoAvancado = v; _ui.value = _ui.value.copy(modoAvancado = v) }
     fun toggleNotificacoes(v: Boolean) { prefs.notificacoesAtivas = v; _ui.value = _ui.value.copy(notificacoesAtivas = v) }
     fun setLembreteManha(min: Int) { prefs.lembreteManhaMin = min; _ui.value = _ui.value.copy(lembreteManhaMin = min) }

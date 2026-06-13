@@ -1,6 +1,7 @@
 package com.pata3d.mira.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -119,6 +120,37 @@ fun TelaConfiguracao(
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = ActionGreen, modifier = Modifier.size(18.dp))
                         Text("Chave salva.", style = MaterialTheme.typography.bodySmall, color = ActionGreen)
+                    }
+                }
+                if (ui.chave.isNotBlank()) {
+                    var confirmarApagar by remember { mutableStateOf(false) }
+                    OutlinedButton(
+                        onClick = { confirmarApagar = true },
+                        modifier = Modifier.fillMaxWidth().height(44.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error,
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
+                    ) {
+                        Icon(Icons.Outlined.DeleteOutline, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Apagar chave salva")
+                    }
+                    if (confirmarApagar) {
+                        AlertDialog(
+                            onDismissRequest = { confirmarApagar = false },
+                            title = { Text("Apagar chave?") },
+                            text = { Text("A chave DeepSeek será removida deste aparelho. As funções de IA vão parar de funcionar.") },
+                            confirmButton = {
+                                TextButton(onClick = { vm.apagarChave(); confirmarApagar = false }) {
+                                    Text("Apagar", color = MaterialTheme.colorScheme.error)
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { confirmarApagar = false }) { Text("Cancelar") }
+                            },
+                        )
                     }
                 }
             }
