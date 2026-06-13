@@ -22,8 +22,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Alarm
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -78,6 +81,7 @@ fun SheetAdicionar(
     var tempoTotal by remember { mutableStateOf("") }
     var etapasTexto by remember { mutableStateOf("") }
 
+    var expandido by remember { mutableStateOf(false) }
     val ctx = LocalContext.current
 
     fun formatarDataHora(millis: Long): String =
@@ -113,201 +117,157 @@ fun SheetAdicionar(
                     onVoltar = { vm.resetar() },
                 )
                 else -> {
-                    Text("Descarregar tarefas", style = MaterialTheme.typography.headlineSmall)
-                    Text("Se for uma tarefa grande, voce pode quebrar em etapas logo aqui.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("O que precisa fazer?", style = MaterialTheme.typography.headlineSmall)
 
+                    // Campo principal — foco total aqui
                     OutlinedTextField(
                         value = texto,
                         onValueChange = { texto = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Titulo da tarefa ou varias tarefas em linhas separadas") },
+                        placeholder = { Text("Ex.: ligar pro João, terminar maquete...") },
                         shape = RoundedCornerShape(14.dp),
-                        minLines = 3,
-                        maxLines = 8,
+                        minLines = 2,
+                        maxLines = 5,
                         colors = campoCores(),
                     )
 
-                    // Seletor de tipo
-                    val tipos = listOf(
-                        TipoTarefa.SIMPLES     to "Simples",
-                        TipoTarefa.LEMBRETE    to "Lembrete",
-                        TipoTarefa.COMPROMISSO to "Compromisso",
-                        TipoTarefa.ENTREGA     to "Entrega",
-                        TipoTarefa.PRODUCAO    to "Produção 3D",
-                    )
-                    Text("Tipo", style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(tipos) { (tipo, label) ->
-                            FilterChip(
-                                selected = ui.tipoTarefa == tipo.name,
-                                onClick  = { vm.setTipoTarefa(tipo.name) },
-                                label    = { Text(label) },
-                            )
-                        }
-                    }
-
-                    // Campos condicionais por tipo
-                    if (ui.tipoTarefa == TipoTarefa.LEMBRETE.name) {
-                        OutlinedTextField(
-                            value = ui.lembreteEm?.let { formatarDataHora(it) } ?: "",
-                            onValueChange = {},
-                            label = { Text("Data/hora do lembrete") },
-                            modifier = Modifier.fillMaxWidth().clickable { pedirDataHora(vm::setLembreteEm) },
-                            readOnly = true,
-                            shape = RoundedCornerShape(12.dp),
-                            trailingIcon = { Icon(Icons.Outlined.Schedule, null) },
-                            colors = campoCores(),
-                        )
-                    }
-
-                    if (ui.tipoTarefa == TipoTarefa.COMPROMISSO.name) {
-                        OutlinedTextField(
-                            value = ui.compromissoEm?.let { formatarDataHora(it) } ?: "",
-                            onValueChange = {},
-                            label = { Text("Data/hora do compromisso") },
-                            modifier = Modifier.fillMaxWidth().clickable { pedirDataHora(vm::setCompromissoEm) },
-                            readOnly = true,
-                            shape = RoundedCornerShape(12.dp),
-                            trailingIcon = { Icon(Icons.Outlined.Alarm, null) },
-                            colors = campoCores(),
-                        )
-                    }
-
-                    if (ui.tipoTarefa == TipoTarefa.ENTREGA.name || ui.tipoTarefa == TipoTarefa.PRODUCAO.name) {
-                        OutlinedTextField(
-                            value = ui.prazoEm?.let { formatarDataHora(it) } ?: "",
-                            onValueChange = {},
-                            label = { Text("Prazo de entrega") },
-                            modifier = Modifier.fillMaxWidth().clickable { pedirDataHora(vm::setPrazoEm) },
-                            readOnly = true,
-                            shape = RoundedCornerShape(12.dp),
-                            trailingIcon = { Icon(Icons.Outlined.Event, null) },
-                            colors = campoCores(),
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Proteger prazo", style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface)
-                            Switch(checked = ui.protegerPrazo, onCheckedChange = { vm.toggleProtegerPrazo() })
-                        }
-                    }
-
-                    if (ui.tipoTarefa == TipoTarefa.PRODUCAO.name) {
-                        Text("Tempo por fase (minutos)", style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedTextField(value = ui.tempoPrepMin, onValueChange = vm::setTempoPrepMin,
-                                label = { Text("Prep") }, modifier = Modifier.weight(1f),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = campoCores())
-                            OutlinedTextField(value = ui.tempoMaquinaMin, onValueChange = vm::setTempoMaquinaMin,
-                                label = { Text("Máquina") }, modifier = Modifier.weight(1f),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = campoCores())
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedTextField(value = ui.tempoSecagemMin, onValueChange = vm::setTempoSecagemMin,
-                                label = { Text("Secagem") }, modifier = Modifier.weight(1f),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = campoCores())
-                            OutlinedTextField(value = ui.tempoFinalMin, onValueChange = vm::setTempoFinalMin,
-                                label = { Text("Finaliz.") }, modifier = Modifier.weight(1f),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = campoCores())
-                        }
-                    }
-
-                    // Micro-passo
-                    OutlinedTextField(
-                        value = ui.microPasso,
-                        onValueChange = vm::setMicroPasso,
-                        label = { Text("Micro-passo (ação pequena agora)") },
-                        modifier = Modifier.fillMaxWidth(),
-                        maxLines = 2,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = campoCores(),
-                    )
-
-                    OutlinedTextField(
-                        value = tempoTotal,
-                        onValueChange = { tempoTotal = it.filter(Char::isDigit) },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Tempo total estimado em minutos (opcional)") },
-                        leadingIcon = {
-                            Icon(Icons.Outlined.Timer, contentDescription = null)
-                        },
-                        shape = RoundedCornerShape(14.dp),
-                        colors = campoCores(),
-                    )
-
-                    OutlinedTextField(
-                        value = etapasTexto,
-                        onValueChange = { etapasTexto = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Etapas, uma por linha. Ex.: Ajustar modelo | 90") },
-                        shape = RoundedCornerShape(14.dp),
-                        minLines = 3,
-                        maxLines = 6,
-                        colors = campoCores(),
-                    )
-
-                    if (etapasTexto.isNotBlank()) {
-                        Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(12.dp)) {
-                            Text(
-                                "Formato: titulo da etapa | minutos. A proxima etapa so libera quando a anterior concluir.",
-                                modifier = Modifier.padding(12.dp),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
+                    // Botões principais
                     Button(
-                        onClick = {
-                            if (texto.isNotBlank()) {
-                                if (vm.temChave()) vm.revisarComIA(texto) else onAbrirConfig()
-                            }
-                        },
-                        enabled = texto.isNotBlank() && revisao !is RevisaoState.Carregando,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                    ) {
-                        if (revisao is RevisaoState.Carregando) {
-                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onSecondary)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Organizando...")
-                        } else {
-                            Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(if (vm.temChave()) "Organizar com IA" else "Configurar IA")
-                        }
-                    }
-
-                    OutlinedButton(
                         onClick = {
                             if (texto.isNotBlank()) {
                                 vm.adicionarDireto(
                                     texto = texto,
                                     tempoTotalMin = tempoTotal.toIntOrNull(),
                                     etapasTexto = etapasTexto,
-                                ) {
-                                    texto = ""
-                                    etapasTexto = ""
-                                    tempoTotal = ""
-                                    onFechar()
-                                }
+                                ) { texto = ""; etapasTexto = ""; tempoTotal = ""; expandido = false; onFechar() }
                             }
                         },
                         enabled = texto.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(14.dp),
                     ) {
-                        Text(if (etapasTexto.isBlank()) "Adicionar sem organizar" else "Salvar tarefa com etapas")
+                        Text("Adicionar", style = MaterialTheme.typography.titleMedium)
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            if (texto.isNotBlank()) {
+                                if (vm.temChave()) vm.revisarComIA(texto) else onAbrirConfig()
+                            }
+                        },
+                        enabled = texto.isNotBlank() && revisao !is RevisaoState.Carregando,
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                    ) {
+                        if (revisao is RevisaoState.Carregando) {
+                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Organizando...")
+                        } else {
+                            Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(if (vm.temChave()) "Organizar com IA" else "Configurar IA")
+                        }
+                    }
+
+                    // Toggle de detalhes
+                    TextButton(
+                        onClick = { expandido = !expandido },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(
+                            if (expandido) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(if (expandido) "Menos detalhes" else "Adicionar detalhes")
+                    }
+
+                    // Campos avançados — só aparecem se o usuário quiser
+                    AnimatedVisibility(expandido) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            val tipos = listOf(
+                                TipoTarefa.SIMPLES     to "Simples",
+                                TipoTarefa.LEMBRETE    to "Lembrete",
+                                TipoTarefa.COMPROMISSO to "Compromisso",
+                                TipoTarefa.ENTREGA     to "Entrega",
+                                TipoTarefa.PRODUCAO    to "Produção 3D",
+                            )
+                            Text("Tipo", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(tipos) { (tipo, label) ->
+                                    FilterChip(selected = ui.tipoTarefa == tipo.name, onClick = { vm.setTipoTarefa(tipo.name) }, label = { Text(label) })
+                                }
+                            }
+
+                            if (ui.tipoTarefa == TipoTarefa.LEMBRETE.name) {
+                                OutlinedTextField(
+                                    value = ui.lembreteEm?.let { formatarDataHora(it) } ?: "",
+                                    onValueChange = {},
+                                    label = { Text("Data/hora do lembrete") },
+                                    modifier = Modifier.fillMaxWidth().clickable { pedirDataHora(vm::setLembreteEm) },
+                                    readOnly = true, shape = RoundedCornerShape(12.dp),
+                                    trailingIcon = { Icon(Icons.Outlined.Schedule, null) }, colors = campoCores(),
+                                )
+                            }
+                            if (ui.tipoTarefa == TipoTarefa.COMPROMISSO.name) {
+                                OutlinedTextField(
+                                    value = ui.compromissoEm?.let { formatarDataHora(it) } ?: "",
+                                    onValueChange = {},
+                                    label = { Text("Data/hora do compromisso") },
+                                    modifier = Modifier.fillMaxWidth().clickable { pedirDataHora(vm::setCompromissoEm) },
+                                    readOnly = true, shape = RoundedCornerShape(12.dp),
+                                    trailingIcon = { Icon(Icons.Outlined.Alarm, null) }, colors = campoCores(),
+                                )
+                            }
+                            if (ui.tipoTarefa == TipoTarefa.ENTREGA.name || ui.tipoTarefa == TipoTarefa.PRODUCAO.name) {
+                                OutlinedTextField(
+                                    value = ui.prazoEm?.let { formatarDataHora(it) } ?: "",
+                                    onValueChange = {},
+                                    label = { Text("Prazo de entrega") },
+                                    modifier = Modifier.fillMaxWidth().clickable { pedirDataHora(vm::setPrazoEm) },
+                                    readOnly = true, shape = RoundedCornerShape(12.dp),
+                                    trailingIcon = { Icon(Icons.Outlined.Event, null) }, colors = campoCores(),
+                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("Proteger prazo", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                                    Switch(checked = ui.protegerPrazo, onCheckedChange = { vm.toggleProtegerPrazo() })
+                                }
+                            }
+                            if (ui.tipoTarefa == TipoTarefa.PRODUCAO.name) {
+                                Text("Tempo por fase (min)", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    OutlinedTextField(value = ui.tempoPrepMin, onValueChange = vm::setTempoPrepMin, label = { Text("Prep") }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = RoundedCornerShape(12.dp), colors = campoCores())
+                                    OutlinedTextField(value = ui.tempoMaquinaMin, onValueChange = vm::setTempoMaquinaMin, label = { Text("Máquina") }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = RoundedCornerShape(12.dp), colors = campoCores())
+                                }
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    OutlinedTextField(value = ui.tempoSecagemMin, onValueChange = vm::setTempoSecagemMin, label = { Text("Secagem") }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = RoundedCornerShape(12.dp), colors = campoCores())
+                                    OutlinedTextField(value = ui.tempoFinalMin, onValueChange = vm::setTempoFinalMin, label = { Text("Finaliz.") }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = RoundedCornerShape(12.dp), colors = campoCores())
+                                }
+                            }
+
+                            OutlinedTextField(
+                                value = ui.microPasso, onValueChange = vm::setMicroPasso,
+                                label = { Text("Primeira ação pequena") },
+                                modifier = Modifier.fillMaxWidth(), maxLines = 2,
+                                shape = RoundedCornerShape(12.dp), colors = campoCores(),
+                            )
+                            OutlinedTextField(
+                                value = tempoTotal, onValueChange = { tempoTotal = it.filter(Char::isDigit) },
+                                modifier = Modifier.fillMaxWidth(),
+                                placeholder = { Text("Tempo estimado em minutos (opcional)") },
+                                leadingIcon = { Icon(Icons.Outlined.Timer, null) },
+                                shape = RoundedCornerShape(14.dp), colors = campoCores(),
+                            )
+                            OutlinedTextField(
+                                value = etapasTexto, onValueChange = { etapasTexto = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                placeholder = { Text("Etapas, uma por linha. Ex.: Ajustar modelo | 90") },
+                                shape = RoundedCornerShape(14.dp), minLines = 2, maxLines = 6,
+                                colors = campoCores(),
+                            )
+                        }
                     }
 
                     if (revisao is RevisaoState.Erro) {
