@@ -29,8 +29,13 @@ class NotificationReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        const val ACTION_CONCLUIR = "com.pata3d.mira.CONCLUIR_TAREFA"
-        const val ACTION_ADIAR    = "com.pata3d.mira.ADIAR_TAREFA"
-        const val EXTRA_ID        = "tarefa_id"
+        const val ACTION_CONCLUIR  = "com.pata3d.mira.CONCLUIR_TAREFA"
+        const val ACTION_ADIAR     = "com.pata3d.mira.ADIAR_TAREFA"
+        const val ACTION_INICIAR   = "com.pata3d.mira.INICIAR_TAREFA"
+        const val ACTION_DIVIDIR   = "com.pata3d.mira.DIVIDIR_TAREFA"
+        const val ACTION_SONECA_5  = "com.pata3d.mira.SONECA_5"
+        const val ACTION_SONECA_10 = "com.pata3d.mira.SONECA_10"
+        const val ACTION_SONECA_30 = "com.pata3d.mira.SONECA_30"
+        const val EXTRA_ID         = "tarefa_id"
     }
 }
