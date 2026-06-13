@@ -272,7 +272,28 @@ fun SheetAdicionar(
 
                     if (revisao is RevisaoState.Erro) {
                         Surface(color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(12.dp)) {
-                            Text((revisao as RevisaoState.Erro).msg, Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(
+                                    "IA indisponível. ${(revisao as RevisaoState.Erro).msg}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                )
+                                if (texto.isNotBlank()) {
+                                    TextButton(
+                                        onClick = {
+                                            vm.resetar()
+                                            vm.adicionarDireto(
+                                                texto = texto,
+                                                tempoTotalMin = tempoTotal.toIntOrNull(),
+                                                etapasTexto = etapasTexto,
+                                            ) { texto = ""; etapasTexto = ""; tempoTotal = ""; expandido = false; onFechar() }
+                                        },
+                                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 0.dp, vertical = 0.dp),
+                                    ) {
+                                        Text("Criar assim mesmo", color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.labelMedium)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
