@@ -1,0 +1,17 @@
+package com.pata3d.mira.data
+
+enum class TipoTarefa {
+    SIMPLES, LEMBRETE, COMPROMISSO, ENTREGA, PRODUCAO
+}
+
+enum class TipoAlerta {
+    NENHUM, NOTIF_CALMA, LEMBRETE, ALARME_EXATO, RISCO_PRAZO, CHECKIN_MAQUINA
+}
+
+enum class NivelRisco {
+    NENHUM, NORMAL, ATENCAO, APERTADO, CRITICO
+}
+
+enum class ContextoNecessario {
+    QUALQUER, TRABALHO, CASA, OFICINA, SO_TELEFONE, COMPUTADOR, MAQUINA_DISPONIVEL, FORA
+}
