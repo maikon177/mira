@@ -69,17 +69,22 @@ class HojeViewModel(
             true
         }
 
+        // Pares (tarefa, ação) na ordem do ranking — hero, motivo e log saem sempre
+        // do MESMO item, sem depender de alinhamento de índice entre listas paralelas.
         val rankBrain = brain?.rank(disponiveis)
-        val ranking: List<Tarefa> = if (rankBrain != null) {
-            rankBrain.mapNotNull { na -> disponiveis.firstOrNull { it.id == na.taskId } }
-        } else {
-            ordenarPorPrioridade(disponiveis, memorias)
-        }
+        val rankingPares: List<Pair<Tarefa, com.pata3d.mira.brain.models.NextAction?>> =
+            if (rankBrain != null) {
+                rankBrain.mapNotNull { na -> disponiveis.firstOrNull { it.id == na.taskId }?.let { it to na } }
+            } else {
+                ordenarPorPrioridade(disponiveis, memorias).map { it to null }
+            }
+        val ranking: List<Tarefa> = rankingPares.map { it.first }
         if (heroIndex >= ranking.size) heroIndex = 0
-        val hero = ranking.getOrNull(heroIndex)
-        val heroReason: String = rankBrain?.getOrNull(heroIndex)?.reason ?: ""
+        val heroPar = rankingPares.getOrNull(heroIndex)
+        val hero = heroPar?.first
+        val heroReason: String = heroPar?.second?.reason ?: ""
         if (brain != null && hero != null && hero.id != ultimoHeroLogado) {
-            rankBrain?.getOrNull(heroIndex)?.let { brain.logDecision(it) }
+            heroPar.second?.let { brain.logDecision(it) }
             ultimoHeroLogado = hero.id
         }
         val heroEtapas = hero?.let { tarefa ->
