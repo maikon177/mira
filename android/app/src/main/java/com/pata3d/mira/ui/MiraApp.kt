@@ -64,7 +64,8 @@ fun MiraApp(
     temPermissaoOverlay: () -> Boolean = { false },
 ) {
     val nav = rememberNavController()
-    val factory = remember { MiraViewModelFactory(repo) }
+    val appCtx = LocalContext.current.applicationContext as com.pata3d.mira.MiraApplication
+    val factory = remember { MiraViewModelFactory(repo, appCtx.miraBrain) }
 
     val hojeVm: HojeViewModel             = viewModel(factory = factory)
     val calendarioVm: CalendarioViewModel = viewModel(factory = factory)
@@ -248,6 +249,7 @@ fun MiraApp(
                         onImportar = {
                             importLauncher.launch(arrayOf("application/json"))
                         },
+                        onSetAutonomyMode = { mode -> configVm.setAutonomyMode(mode) },
                     )
                 }
                 composable("cronograma") {

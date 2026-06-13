@@ -26,6 +26,7 @@ data class ConfigUiState(
     val checkinTardeMin: Int = 13 * 60,
     val checkinNoiteMin: Int = 18 * 60,
     val chatLimparAoSair: Boolean = false,
+    val autonomyMode: String = "ASSISTANT",
 )
 
 class ConfigViewModel(private val repo: MiraRepository) : ViewModel() {
@@ -51,6 +52,7 @@ class ConfigViewModel(private val repo: MiraRepository) : ViewModel() {
         checkinTardeMin    = prefs.checkinTardeMin,
         checkinNoiteMin    = prefs.checkinNoiteMin,
         chatLimparAoSair   = prefs.chatLimparAoSair,
+        autonomyMode       = prefs.autonomyMode,
     )
 
     fun setChave(v: String) { _ui.value = _ui.value.copy(chave = v, chaveSalva = false) }
@@ -82,6 +84,11 @@ class ConfigViewModel(private val repo: MiraRepository) : ViewModel() {
     fun setCheckinNoite(min: Int) { prefs.checkinNoiteMin = min; _ui.value = _ui.value.copy(checkinNoiteMin = min) }
 
     fun toggleChatLimparAoSair(v: Boolean) { prefs.chatLimparAoSair = v; _ui.value = _ui.value.copy(chatLimparAoSair = v) }
+
+    fun setAutonomyMode(mode: String) {
+        prefs.autonomyMode = mode
+        _ui.value = _ui.value.copy(autonomyMode = mode)
+    }
 
     fun limparChat() = viewModelScope.launch { repo.limparChat() }
 

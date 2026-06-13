@@ -4,12 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.pata3d.mira.data.MiraRepository
 
-class MiraViewModelFactory(private val repo: MiraRepository) : ViewModelProvider.Factory {
+class MiraViewModelFactory(
+    private val repo: MiraRepository,
+    private val brain: com.pata3d.mira.brain.MiraBrain? = null,
+) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
-        modelClass.isAssignableFrom(HojeViewModel::class.java)       -> HojeViewModel(repo)
+        modelClass.isAssignableFrom(HojeViewModel::class.java)       -> HojeViewModel(repo, brain)
         modelClass.isAssignableFrom(CalendarioViewModel::class.java) -> CalendarioViewModel(repo)
-        modelClass.isAssignableFrom(ChatViewModel::class.java)       -> ChatViewModel(repo)
+        modelClass.isAssignableFrom(ChatViewModel::class.java)       -> ChatViewModel(repo, brain)
         modelClass.isAssignableFrom(ProgressoViewModel::class.java)  -> ProgressoViewModel(repo)
         modelClass.isAssignableFrom(EntradaViewModel::class.java)    -> EntradaViewModel(repo)
         modelClass.isAssignableFrom(ConfigViewModel::class.java)      -> ConfigViewModel(repo)

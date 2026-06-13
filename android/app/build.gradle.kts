@@ -13,8 +13,8 @@ android {
         applicationId = "com.pata3d.mira"
         minSdk = 24
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.1.4"
+        versionCode = 8
+        versionName = "1.2.0"
     }
 
     buildTypes {
@@ -60,4 +60,6 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+    testImplementation("junit:junit:4.13.2")
 }

@@ -15,8 +15,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         Memoria::class,
         ChatMessage::class,
         BlocoDisponibilidade::class,
+        SugestaoDb::class,
+        AcaoCerebroDb::class,
+        DecisionLogDb::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class MiraDatabase : RoomDatabase() {
@@ -26,6 +29,9 @@ abstract class MiraDatabase : RoomDatabase() {
     abstract fun memoriaDao(): MemoriaDao
     abstract fun chatDao(): ChatDao
     abstract fun disponibilidadeDao(): DisponibilidadeDao
+    abstract fun sugestaoDao(): SugestaoDao
+    abstract fun acaoCerebroDao(): AcaoCerebroDao
+    abstract fun decisionLogDao(): DecisionLogDao
 
     companion object {
         @Volatile private var INSTANCE: MiraDatabase? = null
@@ -59,13 +65,41 @@ abstract class MiraDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS suggestions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        type TEXT NOT NULL, title TEXT NOT NULL, message TEXT NOT NULL,
+                        relatedTaskId TEXT, urgency INTEGER NOT NULL, usefulness INTEGER NOT NULL,
+                        annoyanceRisk INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending',
+                        createdAt INTEGER NOT NULL, expiresAt INTEGER NOT NULL )
+                """.trimIndent())
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS ai_actions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        intent TEXT NOT NULL, payloadJson TEXT NOT NULL DEFAULT '{}',
+                        requiresConfirmation INTEGER NOT NULL, permissionResult TEXT NOT NULL,
+                        status TEXT NOT NULL DEFAULT 'pending', createdAt INTEGER NOT NULL,
+                        executedAt INTEGER )
+                """.trimIndent())
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS decision_logs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        selectedTaskId TEXT NOT NULL, reason TEXT NOT NULL,
+                        scoreJson TEXT NOT NULL DEFAULT '{}', contextJson TEXT NOT NULL DEFAULT '{}',
+                        createdAt INTEGER NOT NULL )
+                """.trimIndent())
+            }
+        }
+
         fun get(context: Context): MiraDatabase = INSTANCE ?: synchronized(this) {
             INSTANCE ?: Room.databaseBuilder(
                 context.applicationContext,
                 MiraDatabase::class.java,
                 "mira.db",
             )
-                .addMigrations(MIGRATION_3_4)
+                .addMigrations(MIGRATION_3_4, MIGRATION_4_5)
                 .fallbackToDestructiveMigration()
                 .build()
                 .also { INSTANCE = it }

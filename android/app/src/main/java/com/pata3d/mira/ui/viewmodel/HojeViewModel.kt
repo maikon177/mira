@@ -21,6 +21,7 @@ data class HojeUiState(
     val contexto: ContextoAtual? = null,
     val hero: Tarefa? = null,
     val heroEtapas: ResumoEtapas? = null,
+    val heroReason: String = "",
     val sugestoes: List<Sugestao> = emptyList(),
     val restoDoDia: List<Tarefa> = emptyList(),
     val totalAbertas: Int = 0,
@@ -28,13 +29,17 @@ data class HojeUiState(
     val concluidasHoje: Int = 0,
 )
 
-class HojeViewModel(private val repo: MiraRepository) : ViewModel() {
+class HojeViewModel(
+    private val repo: MiraRepository,
+    private val brain: com.pata3d.mira.brain.MiraBrain? = null,
+) : ViewModel() {
 
     private val _ui = MutableStateFlow(HojeUiState())
     val ui: StateFlow<HojeUiState> = _ui.asStateFlow()
 
     private val dispensadas = mutableSetOf<String>()
     private var heroIndex = 0
+    private var ultimoHeroLogado: String? = null
 
     init {
         viewModelScope.launch {
@@ -64,9 +69,24 @@ class HojeViewModel(private val repo: MiraRepository) : ViewModel() {
             true
         }
 
-        val ranking = ordenarPorPrioridade(disponiveis, memorias)
+        // Pares (tarefa, ação) na ordem do ranking — hero, motivo e log saem sempre
+        // do MESMO item, sem depender de alinhamento de índice entre listas paralelas.
+        val rankBrain = brain?.rank(disponiveis)
+        val rankingPares: List<Pair<Tarefa, com.pata3d.mira.brain.models.NextAction?>> =
+            if (rankBrain != null) {
+                rankBrain.mapNotNull { na -> disponiveis.firstOrNull { it.id == na.taskId }?.let { it to na } }
+            } else {
+                ordenarPorPrioridade(disponiveis, memorias).map { it to null }
+            }
+        val ranking: List<Tarefa> = rankingPares.map { it.first }
         if (heroIndex >= ranking.size) heroIndex = 0
-        val hero = ranking.getOrNull(heroIndex)
+        val heroPar = rankingPares.getOrNull(heroIndex)
+        val hero = heroPar?.first
+        val heroReason: String = heroPar?.second?.reason ?: ""
+        if (brain != null && hero != null && hero.id != ultimoHeroLogado) {
+            heroPar.second?.let { brain.logDecision(it) }
+            ultimoHeroLogado = hero.id
+        }
         val heroEtapas = hero?.let { tarefa ->
             val etapasDaTarefa = todasEtapas.filter { it.tarefaId == tarefa.id }.sortedBy { it.ordem }
             if (etapasDaTarefa.isEmpty()) null
@@ -94,6 +114,7 @@ class HojeViewModel(private val repo: MiraRepository) : ViewModel() {
             contexto = contexto,
             hero = hero,
             heroEtapas = heroEtapas,
+            heroReason = heroReason,
             sugestoes = sugestoes,
             restoDoDia = resto,
             totalAbertas = disponiveis.size,
