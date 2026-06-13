@@ -1,5 +1,6 @@
 package com.pata3d.mira.data
 
+import com.pata3d.mira.data.NivelRisco
 import com.pata3d.mira.domain.ContextoAtual
 import com.pata3d.mira.domain.Disponibilidade
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,22 @@ class MiraRepository(
 
     suspend fun listarTarefas(): List<Tarefa> = tarefaDao.listarTodas()
     suspend fun listarAbertas(): List<Tarefa> = tarefaDao.listarAbertas()
+
+    fun observarTarefasComPrazo() = tarefaDao.observarComPrazo()
+    fun observarTarefasMaquina() = tarefaDao.observarMaquina()
+
+    suspend fun atualizarNivelRisco(id: String, nivel: NivelRisco) {
+        tarefaDao.atualizarRisco(id, nivel.name, System.currentTimeMillis())
+    }
+
+    suspend fun marcarTarefaIniciada(id: String) {
+        tarefaDao.marcarIniciada(id, System.currentTimeMillis())
+    }
+
+    suspend fun listarCompromissosFuturos(): List<Tarefa> =
+        tarefaDao.listarCompromissosFuturos(System.currentTimeMillis())
+
+    suspend fun buscarTarefa(id: String): Tarefa? = tarefaDao.buscarPorId(id)
     suspend fun observarEtapasSnapshot(): List<EtapaTarefa> = buildList {
         tarefaDao.listarTodas().forEach { addAll(etapaDao.listarDaTarefa(it.id)) }
     }
